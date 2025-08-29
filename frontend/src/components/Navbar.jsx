@@ -1,19 +1,20 @@
 import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom"; // ✅ import router helpers
 import logo from "../assets/images/logo.jpg";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
+  const navigate = useNavigate();
 
-  // Scroll hide/show
+  // Scroll hide/show effect
   useEffect(() => {
     let lastScrollY = window.scrollY;
-
     const handleScroll = () => {
       if (window.scrollY > lastScrollY) {
-        setShowNavbar(false); // scrolling down → hide
+        setShowNavbar(false);
       } else {
-        setShowNavbar(true); // scrolling up → show
+        setShowNavbar(true);
       }
       lastScrollY = window.scrollY;
     };
@@ -21,6 +22,15 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Smooth scroll for homepage sections
+  const handleScrollToSection = (sectionId) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: "smooth" });
+    }
+    setIsOpen(false);
+  };
 
   return (
     <nav
@@ -36,28 +46,83 @@ const Navbar = () => {
       </div>
 
       {/* Desktop Links */}
-      <div className="hidden md:flex space-x-6">
-        <a href="#features" className="hover:text-blue-500">Features</a>
-        <a href="#about" className="hover:text-blue-500">About</a>
-        <a href="#contact" className="hover:text-blue-500">Contact</a>
-      </div>
+      <div className="hidden md:flex items-center space-x-6">
+  {[
+    { label: "Risk Analysis", id: "risk-analysis" },
+    { label: "Vaccination", id: "vaccination" },
+    { label: "Training", id: "Training" },
+    { label: "Guidelines", id: "guidelines" },
+  ].map((item) => (
+    <button
+      key={item.id}
+      onClick={() => handleScrollToSection(item.id)}
+      className="relative group px-2 py-1"
+    >
+      <span className="transition-colors duration-300 group-hover:text-blue-600">
+        {item.label}
+      </span>
+      {/* underline slide animation */}
+      <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+    </button>
+  ))}
 
-      {/* Mobile Hamburger */}
-      <button
-        className="md:hidden text-2xl focus:outline-none"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? "✖" : "☰"}
-      </button>
+  {/* Contact */}
+  <Link
+    to="/contact"
+    className="relative group px-2 py-1"
+  >
+    <span className="transition-colors duration-300 group-hover:text-blue-600">
+      Contact
+    </span>
+    <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+  </Link>
+
+  {/* ✅ Sign In Button (cool hover) */}
+  <button
+    onClick={() => navigate("/signin")}
+    className="ml-4 px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg 
+               relative overflow-hidden transition-all duration-300
+               hover:text-white hover:border-blue-600
+               before:absolute before:top-0 before:left-0 before:w-0 before:h-full before:bg-blue-600 before:transition-all before:duration-300 hover:before:w-full"
+  >
+    <span className="relative z-10">Sign In</span>
+  </button>
+</div>
+
+
+<div className="flex items-center space-x-4 md:hidden">
+  {/* ✅ Sign In Button (visible on mobile outside menu) */}
+  <button
+    onClick={() => navigate("/signin")}
+    className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg 
+               relative overflow-hidden transition-all duration-300
+               hover:text-white hover:border-blue-600
+               before:absolute before:top-0 before:left-0 before:w-0 before:h-full before:bg-blue-600 before:transition-all before:duration-300 hover:before:w-full"
+  >
+    <span className="relative z-10">Sign In</span>
+  </button>
+
+  {/* Hamburger */}
+  <button
+    className="text-2xl focus:outline-none"
+    onClick={() => setIsOpen(!isOpen)}
+  >
+    {isOpen ? "✖" : "☰"}
+  </button>
+</div>
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="absolute top-full right-0 w-full bg-white shadow-md flex flex-col items-center py-4 space-y-4 md:hidden">
-          <a href="#features" className="hover:text-blue-500" onClick={() => setIsOpen(false)}>Features</a>
-          <a href="#about" className="hover:text-blue-500" onClick={() => setIsOpen(false)}>About</a>
-          <a href="#contact" className="hover:text-blue-500" onClick={() => setIsOpen(false)}>Contact</a>
-        </div>
-      )}
+  <div className="absolute top-full right-0 w-full bg-white shadow-md flex flex-col items-center py-4 space-y-4 md:hidden">
+    <button onClick={() => handleScrollToSection("risk-analysis")} className="hover:text-blue-500">Risk Analysis</button>
+    <button onClick={() => handleScrollToSection("vaccination")} className="hover:text-blue-500">Vaccination</button>
+    <button onClick={() => handleScrollToSection("Training")} className="hover:text-blue-500">Training</button>
+    <button onClick={() => handleScrollToSection("guidelines")} className="hover:text-blue-500">Guidelines</button>
+
+    {/* ✅ Contact */}
+    <Link to="/contact" className="hover:text-blue-500">Contact</Link>
+  </div>
+)}
     </nav>
   );
 };
