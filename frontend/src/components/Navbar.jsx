@@ -61,12 +61,10 @@ const Navbar = () => {
       <span className="transition-colors duration-300 group-hover:text-blue-600">
         {item.label}
       </span>
-      {/* underline slide animation */}
       <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
     </button>
   ))}
 
-  {/* Contact */}
   <Link
     to="/contact"
     className="relative group px-2 py-1"
@@ -77,8 +75,7 @@ const Navbar = () => {
     <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
   </Link>
 
-  {/* ✅ Sign In Button (cool hover) */}
-  <button
+  <button style={{ cursor: "pointer" }}
     onClick={() => navigate("/signin")}
     className="ml-4 px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg 
                relative overflow-hidden transition-all duration-300
@@ -91,8 +88,7 @@ const Navbar = () => {
 
 
 <div className="flex items-center space-x-4 md:hidden">
-  {/* ✅ Sign In Button (visible on mobile outside menu) */}
-  <button
+  <button style={{ cursor: "pointer" }}
     onClick={() => navigate("/signin")}
     className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg 
                relative overflow-hidden transition-all duration-300

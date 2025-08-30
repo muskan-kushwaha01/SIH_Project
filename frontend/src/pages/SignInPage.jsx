@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios'; 
 import logo from '../assets/images/logo.jpg';
 import Loader from '../components/Loader';
 
@@ -7,44 +8,39 @@ const translations = {
     signIn: 'Sign In',
     phoneNumber: 'Phone Number',
     password: 'Password',
-    email: 'Email (Optional)',
     submit: 'Submit',
     toggleLanguage: 'हिंदी',
     errors: {
       phone: 'Phone number must be 10 digits and contain only numbers',
       password: 'Password is required',
-      email: 'Invalid email format',
     }
   },
   hi: {
     signIn: 'साइन इन करें',
     phoneNumber: 'फ़ोन नंबर',
     password: 'पासवर्ड',
-    email: 'ईमेल (वैकल्पिक)',
     submit: 'प्रस्तुत',
     toggleLanguage: 'English',
     errors: {
       phone: 'फ़ोन नंबर 10 अंकों का होना चाहिए और केवल अंक होने चाहिए',
       password: 'पासवर्ड आवश्यक है',
-      email: 'अमान्य ईमेल प्रारूप',
     }
   },
 };
 
 const SignIn = () => {
   const [language, setLanguage] = useState('en');
-  const [formData, setFormData] = useState({ phone: '', password: '', email: '' });
+  const [formData, setFormData] = useState({ phone: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const toggleLanguage = () => setLanguage(language === 'en' ? 'hi' : 'en');
   const t = translations[language];
+  const toggleLanguage = () => setLanguage(language === 'en' ? 'hi' : 'en');
 
   const validate = () => {
     const newErrors = {};
     if (!/^[0-9]{10}$/.test(formData.phone)) newErrors.phone = t.errors.phone;
     if (!formData.password) newErrors.password = t.errors.password;
-    if (formData.email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email)) newErrors.email = t.errors.email;
     return newErrors;
   };
 
@@ -53,25 +49,29 @@ const SignIn = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const newErrors = validate();
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-    } else {
-      setErrors({});
-      setLoading(true);
+    setErrors(newErrors);
 
-      // ⏳ simulate API call
-      setTimeout(() => {
+    if (Object.keys(newErrors).length === 0) {
+      setLoading(true);
+      try {
+        // Call backend API for sign in
+        const response = await axios.post("http://localhost:5000/signin", formData); 
+        console.log("Backend response:", response.data);
+        alert("User signed in successfully!");
+        setFormData({ phone: '', password: '' });
+      } catch (error) {
+        console.error("API Error:", error.response ? error.response.data : error.message);
+        alert(error.response?.data?.message || "Something went wrong!");
+      } finally {
         setLoading(false);
-        alert("User signed in!");
-        setFormData({ phone: '', password: '', email: '' });
-      }, 2000);
+      }
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200 px-4 sm:px-6 lg:px-8 font-sans">
       {loading ? (
-        <Loader />  // show loader when signing in
+        <Loader />
       ) : (
         <form 
           className="relative bg-white p-6 sm:p-8 rounded-xl shadow-lg w-full max-w-sm sm:max-w-md lg:max-w-lg text-center"
@@ -122,19 +122,6 @@ const SignIn = () => {
               className="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:outline-none text-sm sm:text-base"
             />
             {errors.password && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.password}</p>}
-          </div>
-
-          {/* Email */}
-          <div className="mb-4 text-left">
-            <label className="block mb-2 text-gray-600 font-medium text-sm sm:text-base">{t.email}</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:outline-none text-sm sm:text-base"
-            />
-            {errors.email && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.email}</p>}
           </div>
 
           {/* Submit Button */}

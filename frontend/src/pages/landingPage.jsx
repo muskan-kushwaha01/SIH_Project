@@ -59,7 +59,7 @@ const LandingPage = () => {
   className="flex flex-col sm:flex-row gap-4 sm:space-x-6 opacity-0 animate-popIn"
   style={{ animationDelay: "0.6s" }}
 >
-  <button
+  <button style={{ cursor: "pointer" }}
     onClick={() => navigate("/signup")}
     className="px-6 py-3 bg-blue-600 text-white rounded-2xl shadow-md 
                hover:bg-blue-700 transition transform hover:scale-105"
@@ -91,7 +91,7 @@ const LandingPage = () => {
         to improve productivity and reduce losses. Tailored solutions for 
         your farm type.
       </p>
-      <motion.button
+      <motion.button style={{ cursor: "pointer" }}
         onClick={handleRiskClick}
         className="w-full sm:w-48 lg:w-56 bg-blue-600 text-white py-3 rounded-xl shadow-md hover:bg-blue-700 transition transform hover:scale-105"
         whileHover={{ scale: 1.05 }}
