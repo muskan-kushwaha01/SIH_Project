@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios'; 
-import logo from '../assets/images/logo.jpg';
+import logo from '../assets/images/logo2.jpg';
 import Loader from '../components/Loader';
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const translations = {
   en: {
@@ -28,11 +30,12 @@ const translations = {
   },
 };
 
-const SignIn = () => {
+const SignIn = ({ setIsLoggedIn }) => {
   const [language, setLanguage] = useState('en');
   const [formData, setFormData] = useState({ phone: '', password: '' });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const t = translations[language];
   const toggleLanguage = () => setLanguage(language === 'en' ? 'hi' : 'en');
@@ -57,11 +60,13 @@ const SignIn = () => {
         // Call backend API for sign in
         const response = await axios.post("http://localhost:5000/signin", formData); 
         console.log("Backend response:", response.data);
-        alert("User signed in successfully!");
+        toast.success("User signed in successfully!");
+        setIsLoggedIn(true);
+        navigate("/");
         setFormData({ phone: '', password: '' });
       } catch (error) {
         console.error("API Error:", error.response ? error.response.data : error.message);
-        alert(error.response?.data?.message || "Something went wrong!");
+        toast.error(error.response?.data?.message || "Something went wrong!");
       } finally {
         setLoading(false);
       }
@@ -88,15 +93,18 @@ const SignIn = () => {
             </button>
           </div>
 
-          {/* Logo + Title */}
-          <div className="mb-6 flex flex-col sm:flex-row items-center justify-center sm:space-x-3 space-y-3 sm:space-y-0">
-            <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-blue-500 shadow-md">
-              <img src={logo} alt="Logo" className="w-full h-full object-cover scale-150 object-top" />
-            </div>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800">BioRaksha</h1>
-          </div>
+<div className="flex items-center  justify-start absolute top-5 left-5 ">
+  <div className="w-20 h-12 flex items-center"> 
+    <img src={logo} alt="Logo" className="h-11 object-contain" />
+  </div>
+  <h1 className="text-xl md:text-2xl font-bold">
+    <span className="text-green-600">Bio</span>
+    <span className="text-blue-900">Raksha</span>
+  </h1>
+</div>
 
-          <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mb-6">{t.signIn}</h2>
+
+          <h2 className="text-xl sm:text-2xl font-semibold text-gray-700 mt-15 mb-6">{t.signIn}</h2>
 
           {/* Phone Number */}
           <div className="mb-4 text-left">
@@ -104,6 +112,7 @@ const SignIn = () => {
             <input
               type="tel"
               name="phone"
+              placeholder='Enter your phone no.'
               value={formData.phone}
               onChange={handleChange}
               className="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:outline-none text-sm sm:text-base"
@@ -117,6 +126,7 @@ const SignIn = () => {
             <input
               type="password"
               name="password"
+              placeholder='Enter your password'
               value={formData.password}
               onChange={handleChange}
               className="w-full p-2.5 sm:p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-gray-500 focus:outline-none text-sm sm:text-base"

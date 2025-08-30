@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom"; // ✅ import router helpers
-import logo from "../assets/images/logo.jpg";
+import logo from "../assets/images/logo2.jpg";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,12 +38,17 @@ const Navbar = () => {
         ${showNavbar ? "translate-y-0" : "-translate-y-full"}`}
     >
       {/* Logo + Text */}
-      <div className="flex items-center space-x-3">
-        <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500 shadow-md">
-          <img src={logo} alt="Logo" className="w-full h-full object-cover scale-200 object-top" />
-        </div>
-        <h1 className="text-xl md:text-2xl font-bold">BioRaksha</h1>
-      </div>
+      <div className="flex items-center space-x-2 sm:space-x-3">
+  <div className="w-12 sm:w-16 md:w-20 h-10 sm:h-12 flex items-center">
+    <img src={logo} alt="Logo" className="h-full object-contain" />
+  </div>
+  <h1 className="text-lg sm:text-xl md:text-2xl font-bold">
+    <span className="text-green-600">Bio</span>
+    <span className="text-blue-900">Raksha</span>
+  </h1>
+</div>
+
+
 
       {/* Desktop Links */}
       <div className="hidden md:flex items-center space-x-6">
@@ -88,15 +93,20 @@ const Navbar = () => {
 
 
 <div className="flex items-center space-x-4 md:hidden">
-  <button style={{ cursor: "pointer" }}
-    onClick={() => navigate("/signin")}
-    className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg 
-               relative overflow-hidden transition-all duration-300
-               hover:text-white hover:border-blue-600
-               before:absolute before:top-0 before:left-0 before:w-0 before:h-full before:bg-blue-600 before:transition-all before:duration-300 hover:before:w-full"
-  >
-    <span className="relative z-10">Sign In</span>
-  </button>
+<button
+  style={{ cursor: "pointer" }}
+  onClick={() => navigate("/signin")}
+  className="ml-4 px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg 
+             relative overflow-hidden transition-all duration-300
+             hover:text-white hover:border-blue-600
+             active:text-white active:bg-blue-600
+             focus:text-white focus:bg-blue-600
+             before:absolute before:top-0 before:left-0 before:w-0 before:h-full 
+             before:bg-blue-600 before:transition-all before:duration-300 
+             hover:before:w-full"
+>
+  <span className="relative z-10">Sign In</span>
+</button>
 
   {/* Hamburger */}
   <button

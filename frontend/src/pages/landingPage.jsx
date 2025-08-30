@@ -9,22 +9,21 @@ import img1 from "../assets/images/hen.jpg";
 import img2 from "../assets/images/pig2.jpg";
 import img3 from "../assets/images/hen3.jpg";
 
-const LandingPage = () => {
+const LandingPage = ({ isLoggedIn }) => {
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(true);
+
   const handleRiskClick = () => {
     navigate("/risk-form");
   };
+
   useEffect(() => {
-    // Simulate loading delay (can remove later when backend integrated)
     const timer = setTimeout(() => {
       setLoading(false);
     }, 1500);
     return () => clearTimeout(timer);
   }, []);
 
-  
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-white">
@@ -32,45 +31,52 @@ const LandingPage = () => {
       </div>
     );
   }
+
   return (
     <div className="flex flex-col min-h-screen overflow-x-hidden">
       {/* Hero Section */}
       <section
-  className="w-full min-h-screen bg-cover bg-center flex flex-col"
-  style={{ backgroundImage: `url(${bgImage})` }}
->
-  <Navbar />
+        className="w-full min-h-screen bg-cover bg-center flex flex-col"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      >
+        <Navbar />
 
-  <div className="flex flex-col justify-center items-center text-center px-4 py-20 md:py-32 mt-[120px]">
-    {/* Heading Animation */}
-    <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white drop-shadow-lg mb-4 pb-5 
-                   opacity-0 animate-fadeIn">
-      Empowering Farmers with Technology
-    </h1>
+        <div className="flex flex-col justify-center items-center text-center px-4 py-20 md:py-32 mt-[120px]">
+          {/* Heading */}
+          <h1
+            className="text-3xl sm:text-4xl md:text-6xl font-bold text-white drop-shadow-lg mb-4 pb-5 
+                       opacity-0 animate-fadeIn"
+          >
+            Empowering Farmers with Technology
+          </h1>
 
-    {/* Paragraph Animation */}
-    <p className="text-base sm:text-lg md:text-xl text-white max-w-2xl mb-8 pb-4 
-                  opacity-0 animate-slideUp animation-delay-300">
-      A smart platform to simplify farming, health, and productivity.
-    </p>
+          {/* Paragraph */}
+          <p
+            className="text-base sm:text-lg md:text-xl text-white max-w-2xl mb-8 pb-4 
+                      opacity-0 animate-slideUp animation-delay-300"
+          >
+            A smart platform to simplify farming, health, and productivity.
+          </p>
 
-    {/* Button Animation */}
-    <div
-  className="flex flex-col sm:flex-row gap-4 sm:space-x-6 opacity-0 animate-popIn"
-  style={{ animationDelay: "0.6s" }}
->
-  <button style={{ cursor: "pointer" }}
-    onClick={() => navigate("/signup")}
-    className="px-6 py-3 bg-blue-600 text-white rounded-2xl shadow-md 
-               hover:bg-blue-700 transition transform hover:scale-105"
-  >
-    Sign Up
-  </button>
-</div>
-  </div>
-</section>
-
-
+          {/* Show button only if NOT logged in */}
+          {!isLoggedIn && (
+            <div
+              className="flex flex-col sm:flex-row gap-4 sm:space-x-6 opacity-0 animate-popIn"
+              style={{ animationDelay: "0.6s" }}
+            >
+              <button
+                style={{ cursor: "pointer" }}
+                onClick={() => navigate("/signup")}
+                className="px-6 py-3 bg-blue-600 text-white rounded-2xl shadow-md 
+                           hover:bg-blue-700 transition transform hover:scale-105"
+              >
+                Sign Up
+              </button>
+            </div>
+          )}
+        </div>
+      </section>
+      
       {/* Risk Analysis Section */}
       <section id="risk-analysis" className="bg-gray-50 py-16 px-6 lg:px-20">
   <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
@@ -134,7 +140,7 @@ const LandingPage = () => {
                        ${i === 2 ? "top-72 left-25 rotate-[-3deg]" : ""}`}
             initial={{ opacity: 0, x: 80 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6, delay: i * 0.3 }}
+            transition={{ duration: 0.6 }}
             viewport={{ once: true }}
             whileHover={{ scale: 1.1, zIndex: 50 }}
           />

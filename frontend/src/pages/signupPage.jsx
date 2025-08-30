@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios"; 
-import logo from "../assets/images/logo.jpg"; 
+import logo from "../assets/images/logo2.jpg"; 
+import { toast } from "react-toastify";
 
 const SignUp = () => {
   const [language, setLanguage] = useState("en");
@@ -84,12 +85,11 @@ const SignUp = () => {
       try {
         const response = await axios.post("http://localhost:5000/signup", formData); 
         console.log("Backend response:", response.data);
-        alert("Form submitted successfully!");
+        toast.success("User signed in successfully!");
         setFormData({ name: "", phone: "", email: "", password: "", farmType: "" });
       } catch (error) {
         console.error("API Error:", error.response ? error.response.data : error.message);
-        alert(error.response?.data?.message || "Something went wrong!");
-      } finally {
+        toast.error(error.response?.data?.message || "Something went wrong!");      } finally {
         setLoading(false);
       }
     }
@@ -111,15 +111,18 @@ const SignUp = () => {
             {language === "en" ? "हिंदी" : "English"}
           </button>
         </div>
+{/* Logo + Title */}
+<div className="flex items-center  justify-start absolute top-5 left-5 ">
+  <div className="w-20 h-12 flex items-center"> 
+    <img src={logo} alt="Logo" className="h-11 object-contain" />
+  </div>
+  <h1 className="text-xl md:text-2xl font-bold">
+    <span className="text-green-600">Bio</span>
+    <span className="text-blue-900">Raksha</span>
+  </h1>
+</div>
 
-        {/* Logo + Heading */}
-        <div className="mb-6 flex items-center justify-center space-x-3">
-          <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-blue-500 shadow-md">
-            <img src={logo} alt="Logo" className="w-full h-full object-cover scale-200 object-top" />
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800">{t.logo}</h1>
-        </div>
-        <h2 className="text-xl sm:text-2xl text-center font-semibold text-gray-700 mb-6">{t.heading}</h2>
+        <h2 className="text-xl sm:text-2xl text-center font-semibold text-gray-700 mt-18 mb-6">{t.heading}</h2>
 
         {/* Inputs */}
         <div className="space-y-4 text-left">
