@@ -6,6 +6,8 @@ import SignIn from './pages/SignInPage';
 import ContactPage from './pages/contactPage';
 import FarmBirdForm from './pages/riskAnalysisForm';
 import ScrollToTop from './components/ScrollToTop'; 
+import PigFarmForm from './pages/pigRiskForm';
+import RiskResultPage from './pages/PigRiskResultPage';
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -22,6 +24,8 @@ function App() {
         <Route path="/signin" element={<SignIn setIsLoggedIn={setIsLoggedIn} />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/risk-form" element={<FarmBirdForm />} />
+        <Route path="/pig-risk-form" element={<PigFarmForm />} />
+        <Route path="/risk-result" element={<RiskResultPage />} />
       </Routes>
     </Router>
     <ToastContainer position="top-right" autoClose={4000} />

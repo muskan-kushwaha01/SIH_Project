@@ -11,12 +11,27 @@ import img3 from "../assets/images/hen3.jpg";
 
 const LandingPage = ({ isLoggedIn }) => {
   const navigate = useNavigate();
+  const [riskDone, setRiskDone] = useState(false);
+
+  useEffect(() => {
+    // Check if the form was submitted before
+    const done = localStorage.getItem("riskSubmitted") === "true";
+    setRiskDone(done);
+  }, []);
+
   const [loading, setLoading] = useState(true);
 
   const handleRiskClick = () => {
-    navigate("/risk-form");
+    const riskDone = localStorage.getItem("riskSubmitted") === "true";
+  
+    if (riskDone) {
+      // If risk already done, go to Risk Result page
+      navigate("/risk-result");
+    } else {
+      // If risk not done, go to Pig Farm Form
+      navigate("/pig-risk-form");
+    }
   };
-
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
@@ -97,15 +112,22 @@ const LandingPage = ({ isLoggedIn }) => {
         to improve productivity and reduce losses. Tailored solutions for 
         your farm type.
       </p>
-      <motion.button style={{ cursor: "pointer" }}
-        onClick={handleRiskClick}
-        className="w-full sm:w-48 lg:w-56 bg-blue-600 text-white py-3 rounded-xl shadow-md hover:bg-blue-700 transition transform hover:scale-105"
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        Do Risk Analysis
-      </motion.button>
-    </motion.div>
+      <button onClick={() => {
+  localStorage.setItem("riskSubmitted", "false");
+  setRiskDone(false);
+}}>
+  Reset Risk Submission
+</button>
+      <motion.button
+  style={{ cursor: "pointer" }}
+  onClick={handleRiskClick}
+  className="w-full sm:w-48 lg:w-56 bg-blue-600 text-white py-3 rounded-xl shadow-md hover:bg-blue-700 transition transform hover:scale-105"
+  whileHover={{ scale: 1.05 }}
+  whileTap={{ scale: 0.95 }}
+>
+  {riskDone ? "Check Your Result" : "Do Risk Analysis"}
+</motion.button>
+</motion.div>
 
     {/* Right side - Image collage */}
     <div className="flex-1 relative w-full">
