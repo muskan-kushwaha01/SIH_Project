@@ -82,7 +82,7 @@ const SignUp = () => {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        const response = await axios.post("http://localhost:5000/signup", formData); 
+        const response = await axios.post("http://localhost:5000/api/users", formData); 
         console.log("Backend response:", response.data);
         alert("Form submitted successfully!");
         setFormData({ name: "", phone: "", email: "", password: "", farmType: "" });

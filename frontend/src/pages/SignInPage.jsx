@@ -55,7 +55,7 @@ const SignIn = () => {
       setLoading(true);
       try {
         // Call backend API for sign in
-        const response = await axios.post("http://localhost:5000/signin", formData); 
+        const response = await axios.post("http://localhost:5000/api/auth", formData); 
         console.log("Backend response:", response.data);
         alert("User signed in successfully!");
         setFormData({ phone: '', password: '' });
