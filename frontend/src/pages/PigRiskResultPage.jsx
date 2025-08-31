@@ -8,8 +8,12 @@ const PigRiskResultPage = () => {
   useEffect(() => {
     const storedResult = localStorage.getItem("riskResult");
     if (storedResult) {
-      setResult(JSON.parse(storedResult));
-    }
+      try {
+        setResult(JSON.parse(storedResult));
+      } catch (err) {
+        console.error("Failed to parse riskResult:", err);
+      }}
+ 
 
     // Make speedometer responsive
     const updateWidth = () => {

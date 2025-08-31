@@ -1,15 +1,23 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware  # import CORS
+from fastapi import FastAPI, Depends
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 import numpy as np
 import os
+from pymongo import MongoClient
+from datetime import datetime
 
+# ------------------------
+# Load ML Model
+# ------------------------
 model_path = os.path.join(os.path.dirname(__file__), '..', 'pig_risk_model.pkl')
 model = joblib.load(model_path)
 
+# ------------------------
 # Initialize FastAPI
+# ------------------------
 app = FastAPI(title="Pig Farm Risk Analysis API")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],  # React dev server
@@ -18,8 +26,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ------------------------
+# MongoDB Setup
+# ------------------------
+MONGO_URI = "mongodb://localhost:27017"  # 👈 Change this later for teammate
+client = MongoClient(MONGO_URI)
+db = client["pig_farm_db"]  # database
+collection = db["risk_analysis_records"]  # collection (like table)
 
-# Input schema
+# ------------------------
+# Input Schema
+# ------------------------
 class FarmInput(BaseModel):
     Farm_Size_Acres_Norm: float
     Total_Pigs_Norm: float
@@ -34,13 +51,19 @@ class FarmInput(BaseModel):
     Vacc_Coverage_Rate: float
     Pig_Density_Norm: float
 
+
+# ------------------------
+# Routes
+# ------------------------
 @app.get("/")
 def root():
     return {"message": "✅ Pig Farm Risk Analysis API is running"}
 
+
 @app.post("/predict")
 def predict_risk(data: FarmInput):
-    features = np.array([[
+    # Convert input to features
+    features = np.array([[ 
         data.Farm_Size_Acres_Norm,
         data.Total_Pigs_Norm,
         data.Nearby_Farm_50m,
@@ -55,7 +78,8 @@ def predict_risk(data: FarmInput):
         data.Pig_Density_Norm
     ]])
 
-    pred = model.predict(features)[0]  # 0,1,2
+    # Predict
+    pred = model.predict(features)[0]
     prob = model.predict_proba(features)[0]
 
     label_map = {0: "Low", 1: "Medium", 2: "High"}
@@ -67,7 +91,7 @@ def predict_risk(data: FarmInput):
         "High": "🚨 High risk! Immediate action needed: vaccinate, enforce hygiene zones, and reduce pig density."
     }
 
-    return {
+    result = {
         "risk_level": risk_level,
         "confidence": {
             "Low": round(prob[0], 3),
@@ -76,3 +100,15 @@ def predict_risk(data: FarmInput):
         },
         "recommendation": recommendations[risk_level]
     }
+
+    # ------------------------
+    # Save Input + Result in MongoDB
+    # ------------------------
+    record = data.dict()
+    record.update({
+        "prediction": result,
+        "timestamp": datetime.utcnow()
+    })
+    collection.insert_one(record)
+
+    return result

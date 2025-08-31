@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 
+
 const PigFarmForm = () => {
     const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
@@ -78,6 +79,16 @@ const PigFarmForm = () => {
       return;
     }
   
+    // ✅ Convert batch age to weeks based on unit
+    let ageInWeeks = 0;
+    if (batches[0].ageUnit === "days") ageInWeeks = parseFloat(batches[0].age) / 7;
+    if (batches[0].ageUnit === "months") ageInWeeks = parseFloat(batches[0].age) * 4;
+    if (batches[0].ageUnit === "years") ageInWeeks = parseFloat(batches[0].age) * 52;
+    if (batches[0].ageUnit === "weeks") ageInWeeks = parseFloat(batches[0].age);
+  
+    // ✅ Vaccination coverage (normalized 0–1, not 0–100)
+    const vaccCoverage = Number((batches[0].vaccinations.length / 4).toFixed(2));
+  
     const dataToSend = {
       Farm_Size_Acres_Norm: parseFloat(farmDetails.farmSize) || 0,
       Total_Pigs_Norm: parseFloat(farmDetails.totalPigs) || 0,
@@ -87,10 +98,12 @@ const PigFarmForm = () => {
       Avg_Visitors_Day_Norm: parseFloat(farmDetails.visitorsPerDay) || 0,
       Introduce_Without_Quarantine: farmDetails.newPigsWithoutQuarantine === "yes" ? 1 : 0,
       Separate_Spaces: farmDetails.separateSpaces === "yes" ? 1 : 0,
-      Batch_Age_Weeks_Norm: parseFloat(batches[0].age) || 0,
+      Batch_Age_Weeks_Norm: ageInWeeks || 0,
       Previously_Infected: batches[0].diseaseInfected === "yes" ? 1 : 0,
-      Vacc_Coverage_Rate: Number(((batches[0].vaccinations.length / 4) * 100).toFixed(2)),
-      Pig_Density_Norm: Number((parseFloat(batches[0].count) / (parseFloat(farmDetails.farmSize) || 1)).toFixed(2))
+      Vacc_Coverage_Rate: vaccCoverage,
+      Pig_Density_Norm: Number(
+        (parseFloat(batches[0].count) / (parseFloat(farmDetails.farmSize) || 1)).toFixed(2)
+      ),
     };
   
     try {
@@ -108,21 +121,21 @@ const PigFarmForm = () => {
       }
   
       const result = await response.json();
-      console.log("Prediction Result:", result);
+      console.log("✅ Prediction Result:", result);
   
-      // Save the result and mark that risk analysis is done
+      // ✅ Save result to localStorage
       localStorage.setItem("riskResult", JSON.stringify(result));
       localStorage.setItem("riskSubmitted", "true");
   
-      // Redirect to landing page /risk-analysis section instead of direct result
-      navigate("/#risk-analysis"); // assuming your risk analysis section has id="risk-analysis"
+      // ✅ Navigate AFTER saving (go to result page, not just section)
+      navigate("/#risk-analysis");
   
-      alert("Form submitted successfully! Now you can check your risk result.");
     } catch (error) {
-      console.error("Fetch Error:", error);
+      console.error("❌ Fetch Error:", error);
       alert("Failed to submit form. Check console for details.");
     }
   };
+  
   
 
   const canProceedToStep2 = () => {
