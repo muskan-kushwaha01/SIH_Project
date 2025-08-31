@@ -9,6 +9,8 @@ import ScrollToTop from './components/ScrollToTop';
 import PigFarmForm from './pages/pigRiskForm';
 import RiskResultPage from './pages/PigRiskResultPage';
 import { ToastContainer } from "react-toastify";
+import Training from './pages/trainingPage';
+import PigPolicies from './pages/policyPage';
 import "react-toastify/dist/ReactToastify.css";
 
 function App() {
@@ -26,6 +28,9 @@ function App() {
         <Route path="/risk-form" element={<FarmBirdForm />} />
         <Route path="/pig-risk-form" element={<PigFarmForm />} />
         <Route path="/risk-result" element={<RiskResultPage />} />
+        <Route path="/training" element={<Training />} />
+        <Route path="/guidelines" element={<PigPolicies />} />
+
       </Routes>
     </Router>
     <ToastContainer position="top-right" autoClose={4000} />

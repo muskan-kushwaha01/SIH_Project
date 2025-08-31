@@ -8,10 +8,24 @@ import Footer from "../components/Footer";
 import img1 from "../assets/images/hen.jpg";
 import img2 from "../assets/images/pig2.jpg";
 import img3 from "../assets/images/hen3.jpg";
+import { useLocation } from "react-router-dom";
 
 const LandingPage = ({ isLoggedIn }) => {
   const navigate = useNavigate();
   const [riskDone, setRiskDone] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.scrollTo) {
+      const section = document.getElementById(location.state.scrollTo);
+      if (section) {
+        // Small delay so DOM finishes rendering
+        setTimeout(() => {
+          section.scrollIntoView({ behavior: "smooth" });
+        }, 100);
+      }
+    }
+  }, [location]);
 
   useEffect(() => {
     // Check if the form was submitted before
