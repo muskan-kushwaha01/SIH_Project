@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pymongo
+passlib[bcrypt]
+joblib
+numpy
+lightgbm
+scikit-learn

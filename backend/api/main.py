@@ -6,6 +6,7 @@ import numpy as np
 import os
 from pymongo import MongoClient
 from datetime import datetime
+from auth import router as auth_router  # Import the merged auth routes
 
 # ------------------------
 # Load ML Model
@@ -25,6 +26,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth_router)
 
 # ------------------------
 # MongoDB Setup

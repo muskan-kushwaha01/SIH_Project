@@ -58,7 +58,7 @@ const SignIn = ({ setIsLoggedIn }) => {
       setLoading(true);
       try {
         // Call backend API for sign in
-        const response = await axios.post("http://localhost:5000/signin", formData); 
+        const response = await axios.post("http://localhost:5000/auth/signin", formData); 
         console.log("Backend response:", response.data);
         toast.success("User signed in successfully!");
         setIsLoggedIn(true);

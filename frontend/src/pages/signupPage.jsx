@@ -83,13 +83,14 @@ const SignUp = () => {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        const response = await axios.post("http://localhost:5000/signup", formData); 
+        const response = await axios.post("http://localhost:5000/auth/signup", formData); 
         console.log("Backend response:", response.data);
         toast.success("User signed in successfully!");
         setFormData({ name: "", phone: "", email: "", password: "", farmType: "" });
       } catch (error) {
         console.error("API Error:", error.response ? error.response.data : error.message);
-        toast.error(error.response?.data?.message || "Something went wrong!");      } finally {
+        toast.error(error.response?.data?.detail || "Something went wrong!");
+      } finally {
         setLoading(false);
       }
     }
