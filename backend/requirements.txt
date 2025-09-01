@@ -1,0 +1,1 @@
+pymaongo,uvicorn,joblib,lightgbm,react-de-speedometer,pydantic,scikit-learn

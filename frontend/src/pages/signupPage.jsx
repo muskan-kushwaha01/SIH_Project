@@ -83,9 +83,10 @@ const SignUp = () => {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        const response = await axios.post("http://localhost:5000/signup", formData); 
+        const response = await axios.post("http://localhost:8000/signup", formData);
         console.log("Backend response:", response.data);
         toast.success("User signed in successfully!");
+        localStorage.setItem("farmType", formData.farmType);
         setFormData({ name: "", phone: "", email: "", password: "", farmType: "" });
       } catch (error) {
         console.error("API Error:", error.response ? error.response.data : error.message);

@@ -12,6 +12,8 @@ const translations = {
     password: 'Password',
     submit: 'Submit',
     toggleLanguage: 'हिंदी',
+    signup: 'Sign up here',
+    newUser:'New User?',
     errors: {
       phone: 'Phone number must be 10 digits and contain only numbers',
       password: 'Password is required',
@@ -22,6 +24,8 @@ const translations = {
     phoneNumber: 'फ़ोन नंबर',
     password: 'पासवर्ड',
     submit: 'प्रस्तुत',
+    signup: 'साइन अप करें',
+    newUser:'न्यू युसर? ',
     toggleLanguage: 'English',
     errors: {
       phone: 'फ़ोन नंबर 10 अंकों का होना चाहिए और केवल अंक होने चाहिए',
@@ -58,9 +62,10 @@ const SignIn = ({ setIsLoggedIn }) => {
       setLoading(true);
       try {
         // Call backend API for sign in
-        const response = await axios.post("http://localhost:5000/signin", formData); 
+        const response = await axios.post("http://localhost:8000/signin", formData);
         console.log("Backend response:", response.data);
         toast.success("User signed in successfully!");
+        localStorage.setItem("farmType", response.data.farmType);
         setIsLoggedIn(true);
         navigate("/");
         setFormData({ phone: '', password: '' });
@@ -134,6 +139,15 @@ const SignIn = ({ setIsLoggedIn }) => {
             {errors.password && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.password}</p>}
           </div>
 
+          <p className="text-sm sm:text-base text-gray-600 mb-4">
+  {t.newUser}{" "}
+  <span
+    onClick={() => navigate("/signup")}
+    className="text-blue-600 hover:underline cursor-pointer font-medium"
+  >
+    {t.signup}
+  </span>
+</p>
           {/* Submit Button */}
           <button
             type="submit"

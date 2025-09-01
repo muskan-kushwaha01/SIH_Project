@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import logo from "../assets/images/logo.jpg";
+import logo from "../assets/images/logo2.jpg";
 
 const ContactPage = () => {
   const [language, setLanguage] = useState("en"); // en = English, hi = Hindi
@@ -109,12 +109,15 @@ const ContactPage = () => {
             {language === "en" ? "हिंदी" : "English"}
           </button>
         </div>
-<div className="mb-6 flex flex-col sm:flex-row items-center justify-center sm:space-x-3 space-y-3 sm:space-y-0">
-          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full overflow-hidden border-2 border-blue-500 shadow-md">
-            <img src={logo} alt="Logo" className="w-full h-full object-cover scale-150 object-top" />
-          </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-gray-800">BioRaksha</h1>
-        </div>
+<div className="flex items-center  justify-start absolute top-8 ">
+  <div className="w-20 h-12 flex items-center"> 
+    <img src={logo} alt="Logo" className="h-11 object-contain" />
+  </div>
+  <h1 className="text-xl md:text-2xl font-bold">
+    <span className="text-green-600">Bio</span>
+    <span className="text-blue-900">Raksha</span>
+  </h1>
+</div>
         {/* Title */}
         <h2 className="text-3xl font-bold text-gray-800 mb-6 text-center">
           {labels[language].title}

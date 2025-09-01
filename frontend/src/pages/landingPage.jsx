@@ -37,15 +37,25 @@ const LandingPage = ({ isLoggedIn }) => {
 
   const handleRiskClick = () => {
     const riskDone = localStorage.getItem("riskSubmitted") === "true";
+    const farmType = localStorage.getItem("farmType"); // 👈 fetch saved farm type
   
     if (riskDone) {
       // If risk already done, go to Risk Result page
       navigate("/risk-result");
     } else {
-      // If risk not done, go to Pig Farm Form
-      navigate("/pig-risk-form");
+      // If risk not done, open correct form based on farm type
+      if (farmType === "pig farm") {
+        navigate("/pig-risk-form");
+      } else if (farmType === "poultry farm") {
+        navigate("/poultry-risk-form");
+      } else {
+        // fallback if somehow no farmType is saved
+        alert("Please sign in and select your farm type first!");
+        navigate("/signin");
+      }
     }
   };
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);

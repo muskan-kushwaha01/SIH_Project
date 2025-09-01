@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
+import { useNavigate } from "react-router-dom";
 
 const FarmBirdForm = () => {
+  const navigate = useNavigate();
  const [currentStep, setCurrentStep] = useState(1);
  const [farmDetails, setFarmDetails] = useState({
  farmSize: '',
@@ -90,26 +92,41 @@ const FarmBirdForm = () => {
  }));
  };
 
- const handleSubmit = () => {
-    if (Number(farmDetails.farmSize) < 1) {
-        alert("Farm size must be at least 1 acre.");
-        return;
-      }
-      if (Number(farmDetails.totalBirds) < 1) {
-        alert("Total birds must be at least 1.");
-        return;
-      }
-      if (Number(farmDetails.visitorsPerDay) < 1) {
-        alert("Visitors per day must be at least 1.");
-        return;
-      }
-    
-   if (batches.length === 0) {
+ const submitForRisk = async () => {
+  try {
+    const response = await fetch("http://localhost:8000/predict-risk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ farmDetails, batches }),
+    });
+    const data = await response.json();
+    console.log("Predicted Risk:", data);
+    alert(`Predicted Risk Level: ${data.risk_level}`);
+  } catch (error) {
+    console.error("Error:", error);
+  }
+};
+const handleSubmit = async () => {
+  // ✅ Farm-level validations
+  if (Number(farmDetails.farmSize) < 1) {
+    alert("Farm size must be at least 1 acre.");
+    return;
+  }
+  if (Number(farmDetails.totalBirds) < 1) {
+    alert("Total birds must be at least 1.");
+    return;
+  }
+  if (Number(farmDetails.visitorsPerDay) < 1) {
+    alert("Visitors per day must be at least 1.");
+    return;
+  }
+
+  // ✅ Batch-level validations
+  if (batches.length === 0) {
     alert("Please add at least one batch before submitting.");
     return;
   }
 
-  // Validate each batch
   for (let batch of batches) {
     if (Number(batch.count) < 1) {
       alert("Batch count must be at least 1.");
@@ -120,10 +137,80 @@ const FarmBirdForm = () => {
       return;
     }
   }
-      const formData = { farmDetails, batches };
-      console.log('Form submitted:', formData);
-      alert('Form submitted successfully! Check console for details.');
-    };
+
+  // ✅ Prepare data for risk API
+  const batch = batches[0]; // taking first batch for prediction
+  let ageInWeeks = 0;
+  switch (batch.ageUnit) {
+    case "days":
+      ageInWeeks = Number(batch.age) / 7;
+      break;
+    case "months":
+      ageInWeeks = Number(batch.age) * 4;
+      break;
+    case "years":
+      ageInWeeks = Number(batch.age) * 52;
+      break;
+    case "weeks":
+    default:
+      ageInWeeks = Number(batch.age);
+  }
+
+  // Vaccination coverage
+  const maxVaccs =
+    batch.birdType === "Chicken"
+      ? batch.chickenType === "Broilers"
+        ? 4
+        : 6
+      : 4; // Duck example
+  const vaccCoverage = Number((batch.vaccinations.length / maxVaccs).toFixed(2));
+
+  const dataToSend = {
+    Farm_Size_Acres_Norm: Number(farmDetails.farmSize) || 0,
+    Total_Birds_Norm: Number(farmDetails.totalBirds) || 0,
+    Nearby_Farm_50m: farmDetails.nearbyFarms === "yes" ? 1 : 0,
+    Proper_Fencing: farmDetails.properFencing === "yes" ? 1 : 0,
+    Clean_Dirty_Zones: farmDetails.cleanDirtyZones === "yes" ? 1 : 0,
+    Avg_Visitors_Day_Norm: Number(farmDetails.visitorsPerDay) || 0,
+    Introduce_Without_Quarantine:
+      farmDetails.newFlocksWithoutQuarantine === "yes" ? 1 : 0,
+    Batch_Age_Weeks_Norm: ageInWeeks || 0,
+    Previously_Infected: batch.diseaseAffected === "yes" ? 1 : 0,
+    Vacc_Coverage_Rate: vaccCoverage,
+    Birds_Per_Acre: Number(
+      (Number(batch.count) / (Number(farmDetails.farmSize) || 1)).toFixed(2)
+    ),
+  };
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/predict-risk", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(dataToSend),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      console.error("API Error:", err);
+      alert("Failed to submit form. Check console for details.");
+      return;
+    }
+
+    const result = await response.json();
+    console.log("✅ Prediction Result:", result);
+
+    // ✅ Save result to localStorage
+    localStorage.setItem("poultryRiskResult", JSON.stringify(result));
+    localStorage.setItem("poultryRiskSubmitted", "true");
+
+    // ✅ Navigate to risk analysis page
+    navigate("/risk-analysis"); // update to your poultry risk page route
+  } catch (error) {
+    console.error("❌ Fetch Error:", error);
+    alert("Failed to submit form. Check console for details.");
+  }
+  submitForRisk();
+};
 
  const canProceedToStep2 = () => {
  const required = ['farmSize', 'totalBirds', 'nearbyFarms', 'waterBodies', 'properFencing', 'cleanDirtyZones', 'visitorsPerDay', 'newFlocksWithoutQuarantine'];

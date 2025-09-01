@@ -137,7 +137,7 @@ export default function PigPolicies() {
   
         {/* Header */}
         <header className="bg-gradient-to-r from-teal-700 to-blue-800 text-white py-8 shadow-md text-center mt-16 md:mt-20">
-          <h1 className="text-2xl md:text-3xl font-bold px-4">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold px-4">
             🐖 Pig Programs – Official Govt Links
           </h1>
         </header>
@@ -147,43 +147,47 @@ export default function PigPolicies() {
           <div className="mb-6 text-center">
             <input
               type="text"
-              className="w-full sm:w-5/6 md:w-3/4 lg:w-2/3 p-3 rounded-full border-2 border-gray-300 
-                         shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="w-11/12 sm:w-8/12 lg:w-2/3 p-3 rounded-full border-2 border-gray-300 
+                         shadow-sm focus:outline-none focus:ring-2 focus:ring-teal-400 text-sm sm:text-base"
               placeholder="Search policies..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
   
-          {/* Policies Grid (responsive) */}
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {/* Policies (stacked like poultry version) */}
+          <div className="space-y-6">
             {filteredPolicies.map((p) => (
               <div
                 key={p.id}
                 className="bg-white rounded-lg shadow-md p-5 border-l-4 border-teal-700 relative 
-                           transition-transform transform hover:-translate-y-2 hover:shadow-lg"
+                           transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl"
               >
                 {/* Toggle Button */}
                 <span
                   className="absolute top-3 right-3 bg-orange-400 text-white px-3 py-1 rounded-full 
-                             cursor-pointer font-semibold shadow text-sm"
+                             cursor-pointer font-semibold text-xs sm:text-sm shadow-sm"
                   onClick={() => toggle(p.id)}
                 >
                   {expanded[p.id] ? "− Less Info" : "+ More Info"}
                 </span>
   
-                {/* Title & Info */}
-                <h3 className="text-teal-700 text-lg font-semibold mb-2">
+                {/* Title */}
+                <h3 className="text-teal-700 text-lg sm:text-xl font-semibold mb-2">
                   {p.id}. {p.title}
                 </h3>
-                <p className="text-gray-600 mb-1 text-sm md:text-base">{p.lead}</p>
-                <p className="text-gray-800 font-medium text-sm md:text-base">
+  
+                {/* Lead */}
+                <p className="text-gray-600 mb-2 text-sm sm:text-base">{p.lead}</p>
+  
+                {/* Focus */}
+                <p className="text-gray-800 font-medium text-sm sm:text-base">
                   <strong>Focus:</strong> {p.focus}
                 </p>
   
                 {/* Expanded Details */}
                 {expanded[p.id] && (
-                  <div className="mt-3 p-3 bg-orange-50 border-l-4 border-teal-700 rounded text-sm md:text-base">
+                  <div className="mt-3 p-3 bg-orange-50 border-l-4 border-teal-700 rounded text-sm sm:text-base">
                     <p className="text-gray-700 mb-2">
                       <strong>Eligibility:</strong> {p.eligibility}
                     </p>
@@ -204,8 +208,8 @@ export default function PigPolicies() {
                   href={p.link}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-block mt-3 bg-teal-700 text-white px-4 py-2 rounded 
-                             hover:bg-teal-800 font-semibold transition-colors text-sm md:text-base"
+                  className="inline-block mt-3 bg-teal-700 hover:bg-teal-800 text-white px-4 py-2 rounded 
+                             font-semibold text-sm sm:text-base transition"
                 >
                   Apply / Learn More
                 </a>

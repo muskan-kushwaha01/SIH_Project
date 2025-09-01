@@ -86,7 +86,7 @@ const handleScrollToSection = (sectionId) => {
           <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
         </Link>
 
-        <Link to="/guidelines" className="relative group px-2 py-1">
+        <Link to="/poultry-guidelines" className="relative group px-2 py-1">
           <span className="transition-colors duration-300 group-hover:text-blue-600">
             Guidelines
           </span>
