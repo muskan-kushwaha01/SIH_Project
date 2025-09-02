@@ -91,23 +91,8 @@ const FarmBirdForm = () => {
  return batch;
  }));
  };
-
- const submitForRisk = async () => {
-  try {
-    const response = await fetch("http://localhost:8000/predict-risk", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ farmDetails, batches }),
-    });
-    const data = await response.json();
-    console.log("Predicted Risk:", data);
-    alert(`Predicted Risk Level: ${data.risk_level}`);
-  } catch (error) {
-    console.error("Error:", error);
-  }
-};
 const handleSubmit = async () => {
-  // ✅ Farm-level validations
+  // --- Farm-level validations ---
   if (Number(farmDetails.farmSize) < 1) {
     alert("Farm size must be at least 1 acre.");
     return;
@@ -121,7 +106,7 @@ const handleSubmit = async () => {
     return;
   }
 
-  // ✅ Batch-level validations
+  // --- Batch-level validations ---
   if (batches.length === 0) {
     alert("Please add at least one batch before submitting.");
     return;
@@ -138,54 +123,54 @@ const handleSubmit = async () => {
     }
   }
 
-  // ✅ Prepare data for risk API
-  const batch = batches[0]; // taking first batch for prediction
+  const batch = batches[0]; // use first batch for prediction
   let ageInWeeks = 0;
   switch (batch.ageUnit) {
-    case "days":
-      ageInWeeks = Number(batch.age) / 7;
-      break;
-    case "months":
-      ageInWeeks = Number(batch.age) * 4;
-      break;
-    case "years":
-      ageInWeeks = Number(batch.age) * 52;
-      break;
-    case "weeks":
-    default:
-      ageInWeeks = Number(batch.age);
+    case "days": ageInWeeks = Number(batch.age) / 7; break;
+    case "months": ageInWeeks = Number(batch.age) * 4; break;
+    case "years": ageInWeeks = Number(batch.age) * 52; break;
+    default: ageInWeeks = Number(batch.age);
   }
 
-  // Vaccination coverage
-  const maxVaccs =
-    batch.birdType === "Chicken"
-      ? batch.chickenType === "Broilers"
-        ? 4
-        : 6
-      : 4; // Duck example
-  const vaccCoverage = Number((batch.vaccinations.length / maxVaccs).toFixed(2));
+  // Vaccines: compute individual flags and missing count
+  const vaccineList = ['Mareks','Newcastle_ND','ND_IB','Gumboro_IBD','ND_IBD_Booster','Fowl_Pox','AE'];
+  const vaccsDone = batch.vaccinations || [];
+  const vaccFlags = {};
+  vaccineList.forEach(v => { vaccFlags[v] = vaccsDone.includes(v) ? 1 : 0; });
+  const missingVaccsCount = vaccineList.length - vaccsDone.length;
 
   const dataToSend = {
-    Farm_Size_Acres_Norm: Number(farmDetails.farmSize) || 0,
-    Total_Birds_Norm: Number(farmDetails.totalBirds) || 0,
+    Farm_Size_Acres: Number(farmDetails.farmSize) || 0,
+    Total_Birds: Number(farmDetails.totalBirds) || 0,
     Nearby_Farm_50m: farmDetails.nearbyFarms === "yes" ? 1 : 0,
+    Water_Bodies_Nearby: farmDetails.waterBodies === "yes" ? 1 : 0,
     Proper_Fencing: farmDetails.properFencing === "yes" ? 1 : 0,
     Clean_Dirty_Zones: farmDetails.cleanDirtyZones === "yes" ? 1 : 0,
-    Avg_Visitors_Day_Norm: Number(farmDetails.visitorsPerDay) || 0,
-    Introduce_Without_Quarantine:
-      farmDetails.newFlocksWithoutQuarantine === "yes" ? 1 : 0,
-    Batch_Age_Weeks_Norm: ageInWeeks || 0,
+    Avg_Visitors_Day: Number(farmDetails.visitorsPerDay) || 0,
+    Introduce_New_Flocks_Without_Quarantine: farmDetails.newFlocksWithoutQuarantine === "yes" ? 1 : 0,
+    Batch_Size: Number(batch.count) || 0,
+    Batch_Age_Weeks: ageInWeeks || 0,
     Previously_Infected: batch.diseaseAffected === "yes" ? 1 : 0,
-    Vacc_Coverage_Rate: vaccCoverage,
-    Birds_Per_Acre: Number(
-      (Number(batch.count) / (Number(farmDetails.farmSize) || 1)).toFixed(2)
-    ),
+    Mareks: vaccFlags['Mareks'],
+    Newcastle_ND: vaccFlags['Newcastle_ND'],
+    ND_IB: vaccFlags['ND_IB'],
+    Gumboro_IBD: vaccFlags['Gumboro_IBD'],
+    ND_IBD_Booster: vaccFlags['ND_IBD_Booster'],
+    Fowl_Pox: vaccFlags['Fowl_Pox'],
+    AE: vaccFlags['AE'],
+    Birds_Per_Acre: Number((Number(batch.count) / (Number(farmDetails.farmSize) || 1)).toFixed(2)),
+    Vacc_Coverage_Rate: Number((vaccsDone.length / vaccineList.length).toFixed(2)),
+    Missing_Vaccines_Count: missingVaccsCount
   };
 
   try {
+    const token = localStorage.getItem("authToken");
     const response = await fetch("http://127.0.0.1:8000/predict-risk", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
       body: JSON.stringify(dataToSend),
     });
 
@@ -197,19 +182,25 @@ const handleSubmit = async () => {
     }
 
     const result = await response.json();
-    console.log("✅ Prediction Result:", result);
+    console.log("✅ Poultry Prediction Result:", result);
 
-    // ✅ Save result to localStorage
-    localStorage.setItem("poultryRiskResult", JSON.stringify(result));
-    localStorage.setItem("poultryRiskSubmitted", "true");
+    // 🔥 ADD THIS: Mark as completed in localStorage for immediate UI update
+    const userId = localStorage.getItem("userId");
+    if (userId) {
+      localStorage.setItem(`riskSubmitted_${userId}`, "true");
+      console.log(`✅ Marked poultry risk as completed for user: ${userId}`);
+    }
 
-    // ✅ Navigate to risk analysis page
-    navigate("/risk-analysis"); // update to your poultry risk page route
+    // Force update all components
+    window.dispatchEvent(new Event("storage"));
+
+    alert("Poultry risk analysis completed successfully!");
+    navigate("/"); // This will now show "Check Your Result" button
+
   } catch (error) {
     console.error("❌ Fetch Error:", error);
     alert("Failed to submit form. Check console for details.");
   }
-  submitForRisk();
 };
 
  const canProceedToStep2 = () => {

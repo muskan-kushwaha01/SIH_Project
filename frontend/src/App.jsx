@@ -10,9 +10,10 @@ import PigFarmForm from './pages/pigRiskForm';
 import RiskResultPage from './pages/PigRiskResultPage';
 import { ToastContainer } from "react-toastify";
 import Training from './pages/trainingPage';
-import DynamicGuidelines from './pages/DynamicGuidelines'; // New dynamic component
-import DynamicRiskAnalysis from './pages/DynamicRiskAnalysis'; // New dynamic component
+import DynamicGuidelines from './pages/dynamicPolicypage'; // New dynamic component
+import DynamicRiskAnalysis from './pages/dynamicRiskAnalysisPage'; // New dynamic component
 import "react-toastify/dist/ReactToastify.css";
+import PoultryRiskResultPage from './pages/poultryResultPage';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -28,6 +29,7 @@ function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/training" element={<Training />} />
         <Route path="/risk-result" element={<RiskResultPage />} />
+        <Route path="/poultry-result" element={<PoultryRiskResultPage />} />
         
         {/* ✅ NEW: Dynamic routes based on farm type */}
         <Route path="/guidelines" element={<DynamicGuidelines />} />

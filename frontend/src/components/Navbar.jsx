@@ -38,7 +38,7 @@ const Navbar = () => {
     if (!isLoggedIn) {
       navigate("/signin");
     } else {
-      navigate("/poultry-guidelines");
+      navigate("/guidelines");
     }
     setIsOpen(false); // Close mobile menu if open
   };

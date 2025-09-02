@@ -13,13 +13,13 @@ const LandingPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // ✅ States
+  // States
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [riskDone, setRiskDone] = useState(false);
-  const [farmType, setFarmType] = useState(null); // added missing state
+  const [farmType, setFarmType] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // ✅ Scroll handler (when redirected with scrollTo param)
+  // Scroll handler (when redirected with scrollTo param)
   useEffect(() => {
     if (location.state?.scrollTo) {
       const section = document.getElementById(location.state.scrollTo);
@@ -31,86 +31,83 @@ const LandingPage = () => {
     }
   }, [location]);
 
- 
-useEffect(() => {
-  const checkAuth = async () => {
-    const token = localStorage.getItem("authToken");
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("authToken");
 
-    if (token) {
-      setIsLoggedIn(true);
+      if (token) {
+        setIsLoggedIn(true);
 
-      try {
-        const response = await fetch("http://127.0.0.1:8000/auth/me", {
-          method: "GET",
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        try {
+          const response = await fetch("http://127.0.0.1:8000/auth/me", {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+          });
 
-        if (!response.ok) {
-          throw new Error("Auth failed");
-        }
+          if (!response.ok) {
+            throw new Error("Auth failed");
+          }
 
-        const data = await response.json();
-        console.log("Auth data from backend:", data);
-        
-        // Store farmType
-        if (data?.farmType) {
-          setFarmType(data.farmType);
-          localStorage.setItem("farmType", data.farmType);
-        }
+          const data = await response.json();
+          console.log("Auth data from backend:", data);
+          
+          // Store farmType
+          if (data?.farmType) {
+            setFarmType(data.farmType);
+            localStorage.setItem("farmType", data.farmType);
+          }
 
-        // Store userId 
-        const userId = data?.phone;
-        if (userId) {
-          localStorage.setItem("userId", userId);
-        }
+          // Store userId 
+          const userId = data?.phone;
+          if (userId) {
+            localStorage.setItem("userId", userId);
+          }
 
-        // 🔥 NEW: Check if user has result in database
-        if (data?.hasRiskResult) {
-          setRiskDone(true);
-          // Also store in localStorage for faster offline check
-          localStorage.setItem(`riskSubmitted_${userId}`, "true");
-          console.log(`✅ User ${userId} has existing risk analysis`);
-        } else {
+          // Check if user has result in database
+          if (data?.hasRiskResult) {
+            setRiskDone(true);
+            // Also store in localStorage for faster offline check
+            localStorage.setItem(`riskSubmitted_${userId}`, "true");
+            console.log(`User ${userId} has existing risk analysis`);
+          } else {
+            setRiskDone(false);
+            // Clear localStorage flag if no result in database
+            localStorage.removeItem(`riskSubmitted_${userId}`);
+            console.log(`User ${userId} needs to complete risk analysis`);
+          }
+
+        } catch (error) {
+          console.error("Auth check failed:", error);
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("farmType");
+          localStorage.removeItem("userId");
+          setIsLoggedIn(false);
           setRiskDone(false);
-          // Clear localStorage flag if no result in database
-          localStorage.removeItem(`riskSubmitted_${userId}`);
-          console.log(`ℹ️ User ${userId} needs to complete risk analysis`);
+          setFarmType(null);
         }
-
-      } catch (error) {
-        console.error("Auth check failed:", error);
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("farmType");
-        localStorage.removeItem("userId");
+      } else {
         setIsLoggedIn(false);
         setRiskDone(false);
         setFarmType(null);
       }
-    } else {
-      setIsLoggedIn(false);
-      setRiskDone(false);
-      setFarmType(null);
-    }
-  };
+    };
 
-  checkAuth();
-
-  const handleStorageChange = () => {
     checkAuth();
-  };
 
-  window.addEventListener("storage", handleStorageChange);
-  window.addEventListener("focus", handleStorageChange);
+    const handleStorageChange = () => {
+      checkAuth();
+    };
 
-  return () => {
-    window.removeEventListener("storage", handleStorageChange);
-    window.removeEventListener("focus", handleStorageChange);
-  };
-}, []);
+    window.addEventListener("storage", handleStorageChange);
+    window.addEventListener("focus", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+      window.removeEventListener("focus", handleStorageChange);
+    };
+  }, []);
   
-  
-
-  // ✅ React to login/logout in real-time
+  // React to login/logout in real-time
   useEffect(() => {
     const handleStorageChange = () => {
       const token = localStorage.getItem("authToken");
@@ -123,8 +120,7 @@ useEffect(() => {
         localStorage.removeItem("farmType");
         localStorage.removeItem("userId");
       } else if (userId) {
-        const done =
-          localStorage.getItem(`riskSubmitted_${userId}`) === "true";
+        const done = localStorage.getItem(`riskSubmitted_${userId}`) === "true";
         setRiskDone(done);
       }
     };
@@ -133,84 +129,40 @@ useEffect(() => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  // ✅ Risk button logic
-  const handleRiskClick = () => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      alert("Please sign in to access Risk Analysis!");
-      navigate("/signin");
-      return;
-    }
-  
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      alert("User session error. Please sign in again.");
-      navigate("/signin");
-      return;
-    }
-  
-    // Check if user has completed risk analysis
-    const hasResult = localStorage.getItem(`riskSubmitted_${userId}`) === "true";
-    
-    if (hasResult) {
-      // Navigate to results page
-      navigate("/risk-result");
-      return;
-    }
-  
-    // Navigate to form based on farm type
-    let userFarmType = farmType || localStorage.getItem("farmType");
-    
-    if (!userFarmType) {
-      // Fetch from backend if not available
-      fetch("http://127.0.0.1:8000/auth/me", {
-        method: "GET",
-        headers: { Authorization: `Bearer ${token}` },
-      })
-        .then((res) => {
-          if (!res.ok) throw new Error("Auth failed");
-          return res.json();
-        })
-        .then((data) => {
-          userFarmType = data?.farmType;
-          
-          if (userFarmType) {
-            localStorage.setItem("farmType", userFarmType);
-            setFarmType(userFarmType);
-            navigateToForm(userFarmType);
-          } else {
-            alert("Farm type not found in your profile. Please sign in again.");
-            navigate("/signin");
-          }
-        })
-        .catch((err) => {
-          console.error("Error fetching user data:", err);
-          alert("Error loading your profile. Please sign in again.");
-          navigate("/signin");
-        });
-    } else {
-      navigateToForm(userFarmType);
-    }
-  };
-  // Helper function to handle navigation
-  const navigateToForm = (farmType) => {
-    // 🔥 FIX: Normalize farmType from backend
-    const normalizedType = farmType.toLowerCase().replace(/\s+/g, '');
-    
-    console.log("Original farmType:", farmType);
-    console.log("Normalized farmType:", normalizedType);
-    
-    if (normalizedType.includes("pig")) {
-      navigate("/pig-risk-form");
-    } else if (normalizedType.includes("poultry")) {
-      navigate("/poultry-risk-form");
-    } else {
-      alert(`Unknown farm type: ${farmType}. Please contact support.`);
-    }
-  };
-  
+  // Simplified Risk button logic - just navigate to dynamic route
+  // Replace the handleRiskClick function in your LandingPage.jsx with this:
 
-  // ✅ Loader
+const handleRiskClick = () => {
+  const token = localStorage.getItem("authToken");
+  if (!token) {
+    alert("Please sign in to access Risk Analysis!");
+    navigate("/signin");
+    return;
+  }
+
+  const userId = localStorage.getItem("userId");
+  if (!userId) {
+    alert("User session error. Please sign in again.");
+    navigate("/signin");
+    return;
+  }
+
+  // Check if user has completed risk analysis
+  const hasResult = localStorage.getItem(`riskSubmitted_${userId}`) === "true";
+  
+  if (hasResult || riskDone) { // Use either localStorage or backend flag
+    // Navigate to correct results page based on farm type
+    if (farmType && farmType.toLowerCase().includes('poultry')) {
+      navigate("/poultry-result"); // Navigate to poultry results
+    } else {
+      navigate("/risk-result"); // Navigate to pig results  
+    }
+  } else {
+    // Navigate to dynamic risk analysis (will show appropriate form)
+    navigate("/risk-analysis");
+  }
+};
+  // Loader
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);

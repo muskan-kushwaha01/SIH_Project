@@ -118,8 +118,15 @@ def signin(user: UserLogin):
 def get_me(current_user: dict = Depends(get_current_user)):
     """Return current logged-in user profile with risk status"""
     
-    # Use the same collection name as your main file
-    risk_collection = db["risk_analysis_records"]
+    farm_type = current_user.get("farmType", "").lower()
+    
+    if "pig" in farm_type:
+        risk_collection = db["risk_analysis_records"]
+    elif "poultry" in farm_type:
+        risk_collection = db["poultry_risk_records"]
+    else:
+        risk_collection = db["risk_analysis_records"]  # default
+    
     has_result = risk_collection.find_one({"user_phone": current_user.get("phone")}) is not None
     
     return {

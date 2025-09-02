@@ -148,7 +148,7 @@ const PigFarmForm = () => {
             section.scrollIntoView({ behavior: "smooth" });
           }
         }, 100);
-      }, 200);
+      }, );
   
     } catch (error) {
       console.error("❌ Fetch Error:", error);
@@ -573,6 +573,7 @@ const PigFarmForm = () => {
                   className="px-4 sm:px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md font-medium text-sm sm:text-base"
                 >
                   Submit
+                  
                 </button>
               </div>
             </div>
