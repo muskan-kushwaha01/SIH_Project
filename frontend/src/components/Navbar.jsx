@@ -43,6 +43,28 @@ const Navbar = () => {
     setIsOpen(false); // Close mobile menu if open
   };
 
+  // ✅ Handler for Vaccination click
+const handleVaccinationClick = () => {
+  if (!isLoggedIn) {
+    alert("Please sign in to view vaccination details");
+    navigate("/signin");
+  } else {
+    navigate("/vaccination");
+  }
+  setIsOpen(false); // Close mobile menu if open
+};
+
+// ✅ Handler for Training click
+const handleTrainingClick = () => {
+  if (!isLoggedIn) {
+    alert("Please sign in to view training details");
+    navigate("/signin");
+  } else {
+    navigate("/training");
+  }
+  setIsOpen(false); // Close mobile menu if open
+};
+
   const handleLogout = () => {
     // Only clear auth data - results stay in database
     localStorage.removeItem("authToken");
@@ -125,19 +147,26 @@ const Navbar = () => {
           <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
         </button>
 
-        <Link to="/vaccination" className="relative group px-2 py-1">
-          <span className="transition-colors duration-300 group-hover:text-blue-600">
-            Vaccination
-          </span>
-          <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-        </Link>
+        <button
+  onClick={handleVaccinationClick}
+  className="relative group px-2 py-1"
+>
+  <span className="transition-colors duration-300 group-hover:text-blue-600">
+    Vaccination
+  </span>
+  <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+</button>
 
-        <Link to="/training" className="relative group px-2 py-1">
-          <span className="transition-colors duration-300 group-hover:text-blue-600">
-            Training
-          </span>
-          <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
-        </Link>
+<button
+  onClick={handleTrainingClick}
+  className="relative group px-2 py-1"
+>
+  <span className="transition-colors duration-300 group-hover:text-blue-600">
+    Training
+  </span>
+  <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+</button>
+
 
         {/* ✅ Guidelines with authentication check */}
         <button
@@ -230,12 +259,14 @@ const Navbar = () => {
           >
             Risk Analysis
           </button>
-          <Link to="/vaccination" className="hover:text-blue-500">
-            Vaccination
-          </Link>
-          <Link to="/training" className="hover:text-blue-500">
-            Training
-          </Link>
+          <button onClick={handleVaccinationClick} className="hover:text-blue-500">
+  Vaccination
+</button>
+
+<button onClick={handleTrainingClick} className="hover:text-blue-500">
+  Training
+</button>
+
           {/* ✅ Guidelines with authentication check for mobile */}
           <button
             onClick={handleGuidelinesClick}

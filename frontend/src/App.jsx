@@ -14,6 +14,8 @@ import DynamicGuidelines from './pages/dynamicPolicypage'; // New dynamic compon
 import DynamicRiskAnalysis from './pages/dynamicRiskAnalysisPage'; // New dynamic component
 import "react-toastify/dist/ReactToastify.css";
 import PoultryRiskResultPage from './pages/poultryResultPage';
+import Vaccination from './pages/vaccination';
+
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -30,6 +32,8 @@ function App() {
         <Route path="/training" element={<Training />} />
         <Route path="/risk-result" element={<RiskResultPage />} />
         <Route path="/poultry-result" element={<PoultryRiskResultPage />} />
+        <Route path="/vaccination" element={<Vaccination />} />
+        <Route path="/training" element={<Training />} />
         
         {/* ✅ NEW: Dynamic routes based on farm type */}
         <Route path="/guidelines" element={<DynamicGuidelines />} />
