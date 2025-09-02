@@ -3,23 +3,27 @@ import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
 import bgImage from "../assets/images/bg-img1.jpg";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import Footer from "../components/Footer";
 import img1 from "../assets/images/hen.jpg";
 import img2 from "../assets/images/pig2.jpg";
 import img3 from "../assets/images/hen3.jpg";
-import { useLocation } from "react-router-dom";
 
-const LandingPage = ({ isLoggedIn }) => {
+const LandingPage = () => {
   const navigate = useNavigate();
-  const [riskDone, setRiskDone] = useState(false);
   const location = useLocation();
 
+  // ✅ States
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [riskDone, setRiskDone] = useState(false);
+  const [farmType, setFarmType] = useState(null); // added missing state
+  const [loading, setLoading] = useState(true);
+
+  // ✅ Scroll handler (when redirected with scrollTo param)
   useEffect(() => {
     if (location.state?.scrollTo) {
       const section = document.getElementById(location.state.scrollTo);
       if (section) {
-        // Small delay so DOM finishes rendering
         setTimeout(() => {
           section.scrollIntoView({ behavior: "smooth" });
         }, 100);
@@ -27,35 +31,186 @@ const LandingPage = ({ isLoggedIn }) => {
     }
   }, [location]);
 
+ 
+useEffect(() => {
+  const checkAuth = async () => {
+    const token = localStorage.getItem("authToken");
+
+    if (token) {
+      setIsLoggedIn(true);
+
+      try {
+        const response = await fetch("http://127.0.0.1:8000/auth/me", {
+          method: "GET",
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!response.ok) {
+          throw new Error("Auth failed");
+        }
+
+        const data = await response.json();
+        console.log("Auth data from backend:", data);
+        
+        // Store farmType
+        if (data?.farmType) {
+          setFarmType(data.farmType);
+          localStorage.setItem("farmType", data.farmType);
+        }
+
+        // Store userId 
+        const userId = data?.phone;
+        if (userId) {
+          localStorage.setItem("userId", userId);
+        }
+
+        // 🔥 NEW: Check if user has result in database
+        if (data?.hasRiskResult) {
+          setRiskDone(true);
+          // Also store in localStorage for faster offline check
+          localStorage.setItem(`riskSubmitted_${userId}`, "true");
+          console.log(`✅ User ${userId} has existing risk analysis`);
+        } else {
+          setRiskDone(false);
+          // Clear localStorage flag if no result in database
+          localStorage.removeItem(`riskSubmitted_${userId}`);
+          console.log(`ℹ️ User ${userId} needs to complete risk analysis`);
+        }
+
+      } catch (error) {
+        console.error("Auth check failed:", error);
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("farmType");
+        localStorage.removeItem("userId");
+        setIsLoggedIn(false);
+        setRiskDone(false);
+        setFarmType(null);
+      }
+    } else {
+      setIsLoggedIn(false);
+      setRiskDone(false);
+      setFarmType(null);
+    }
+  };
+
+  checkAuth();
+
+  const handleStorageChange = () => {
+    checkAuth();
+  };
+
+  window.addEventListener("storage", handleStorageChange);
+  window.addEventListener("focus", handleStorageChange);
+
+  return () => {
+    window.removeEventListener("storage", handleStorageChange);
+    window.removeEventListener("focus", handleStorageChange);
+  };
+}, []);
+  
+  
+
+  // ✅ React to login/logout in real-time
   useEffect(() => {
-    // Check if the form was submitted before
-    const done = localStorage.getItem("riskSubmitted") === "true";
-    setRiskDone(done);
+    const handleStorageChange = () => {
+      const token = localStorage.getItem("authToken");
+      const userId = localStorage.getItem("userId");
+
+      if (!token) {
+        setIsLoggedIn(false);
+        setRiskDone(false);
+        setFarmType(null);
+        localStorage.removeItem("farmType");
+        localStorage.removeItem("userId");
+      } else if (userId) {
+        const done =
+          localStorage.getItem(`riskSubmitted_${userId}`) === "true";
+        setRiskDone(done);
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const [loading, setLoading] = useState(true);
-
+  // ✅ Risk button logic
   const handleRiskClick = () => {
-    const riskDone = localStorage.getItem("riskSubmitted") === "true";
-    const farmType = localStorage.getItem("farmType"); // 👈 fetch saved farm type
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Please sign in to access Risk Analysis!");
+      navigate("/signin");
+      return;
+    }
   
-    if (riskDone) {
-      // If risk already done, go to Risk Result page
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      alert("User session error. Please sign in again.");
+      navigate("/signin");
+      return;
+    }
+  
+    // Check if user has completed risk analysis
+    const hasResult = localStorage.getItem(`riskSubmitted_${userId}`) === "true";
+    
+    if (hasResult) {
+      // Navigate to results page
       navigate("/risk-result");
+      return;
+    }
+  
+    // Navigate to form based on farm type
+    let userFarmType = farmType || localStorage.getItem("farmType");
+    
+    if (!userFarmType) {
+      // Fetch from backend if not available
+      fetch("http://127.0.0.1:8000/auth/me", {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => {
+          if (!res.ok) throw new Error("Auth failed");
+          return res.json();
+        })
+        .then((data) => {
+          userFarmType = data?.farmType;
+          
+          if (userFarmType) {
+            localStorage.setItem("farmType", userFarmType);
+            setFarmType(userFarmType);
+            navigateToForm(userFarmType);
+          } else {
+            alert("Farm type not found in your profile. Please sign in again.");
+            navigate("/signin");
+          }
+        })
+        .catch((err) => {
+          console.error("Error fetching user data:", err);
+          alert("Error loading your profile. Please sign in again.");
+          navigate("/signin");
+        });
     } else {
-      // If risk not done, open correct form based on farm type
-      if (farmType === "pig farm") {
-        navigate("/pig-risk-form");
-      } else if (farmType === "poultry farm") {
-        navigate("/poultry-risk-form");
-      } else {
-        // fallback if somehow no farmType is saved
-        alert("Please sign in and select your farm type first!");
-        navigate("/signin");
-      }
+      navigateToForm(userFarmType);
+    }
+  };
+  // Helper function to handle navigation
+  const navigateToForm = (farmType) => {
+    // 🔥 FIX: Normalize farmType from backend
+    const normalizedType = farmType.toLowerCase().replace(/\s+/g, '');
+    
+    console.log("Original farmType:", farmType);
+    console.log("Normalized farmType:", normalizedType);
+    
+    if (normalizedType.includes("pig")) {
+      navigate("/pig-risk-form");
+    } else if (normalizedType.includes("poultry")) {
+      navigate("/poultry-risk-form");
+    } else {
+      alert(`Unknown farm type: ${farmType}. Please contact support.`);
     }
   };
   
+
+  // ✅ Loader
   useEffect(() => {
     const timer = setTimeout(() => {
       setLoading(false);
@@ -81,23 +236,14 @@ const LandingPage = ({ isLoggedIn }) => {
         <Navbar />
 
         <div className="flex flex-col justify-center items-center text-center px-4 py-20 md:py-32 mt-[120px]">
-          {/* Heading */}
-          <h1
-            className="text-3xl sm:text-4xl md:text-6xl font-bold text-white drop-shadow-lg mb-4 pb-5 
-                       opacity-0 animate-fadeIn"
-          >
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white drop-shadow-lg mb-4 pb-5 opacity-0 animate-fadeIn">
             Empowering Farmers with Technology
           </h1>
 
-          {/* Paragraph */}
-          <p
-            className="text-base sm:text-lg md:text-xl text-white max-w-2xl mb-8 pb-4 
-                      opacity-0 animate-slideUp animation-delay-300"
-          >
+          <p className="text-base sm:text-lg md:text-xl text-white max-w-2xl mb-8 pb-4 opacity-0 animate-slideUp animation-delay-300">
             A smart platform to simplify farming, health, and productivity.
           </p>
 
-          {/* Show button only if NOT logged in */}
           {!isLoggedIn && (
             <div
               className="flex flex-col sm:flex-row gap-4 sm:space-x-6 opacity-0 animate-popIn"
@@ -106,8 +252,7 @@ const LandingPage = ({ isLoggedIn }) => {
               <button
                 style={{ cursor: "pointer" }}
                 onClick={() => navigate("/signup")}
-                className="px-6 py-3 bg-blue-600 text-white rounded-2xl shadow-md 
-                           hover:bg-blue-700 transition transform hover:scale-105"
+                className="px-6 py-3 bg-blue-600 text-white rounded-2xl shadow-md hover:bg-blue-700 transition transform hover:scale-105"
               >
                 Sign Up
               </button>
@@ -115,86 +260,80 @@ const LandingPage = ({ isLoggedIn }) => {
           )}
         </div>
       </section>
-      
+
       {/* Risk Analysis Section */}
       <section id="risk-analysis" className="bg-gray-50 py-16 px-6 lg:px-20">
-  <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
-
-    {/* Left side */}
-    <motion.div
-      className="flex-1 flex flex-col justify-center space-y-6"
-      initial={{ opacity: 0, x: -50 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.8 }}
-      viewport={{ once: true }}   // ✅ Runs only first time in view
-    >
-      <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800">
-        Risk Analysis for Your Farm
-      </h2>
-      <p className="text-gray-600 text-base sm:text-lg lg:text-xl">
-        Identify potential risks on your farm and get actionable insights 
-        to improve productivity and reduce losses. Tailored solutions for 
-        your farm type.
-      </p>
-      <button onClick={() => {
-  localStorage.setItem("riskSubmitted", "false");
-  setRiskDone(false);
-}}>
-  Reset Risk Submission
-</button>
-      <motion.button
-  style={{ cursor: "pointer" }}
-  onClick={handleRiskClick}
-  className="w-full sm:w-48 lg:w-56 bg-blue-600 text-white py-3 rounded-xl shadow-md hover:bg-blue-700 transition transform hover:scale-105"
-  whileHover={{ scale: 1.05 }}
-  whileTap={{ scale: 0.95 }}
->
-  {riskDone ? "Check Your Result" : "Do Risk Analysis"}
-</motion.button>
-</motion.div>
-
-    {/* Right side - Image collage */}
-    <div className="flex-1 relative w-full">
-
-      {/* Mobile/Tablet View */}
-      <div className="flex justify-center gap-2 relative lg:hidden">
-        {[img1, img2, img3].map((img, i) => (
-          <motion.img
-            key={i}
-            src={img}
-            alt={`Risk ${i + 1}`}
-            className="w-28 h-28 sm:w-36 sm:h-36 rounded-xl shadow-lg object-cover"
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: i * 0.2 }}
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-12">
+          {/* Left side */}
+          <motion.div
+            className="flex-1 flex flex-col justify-center space-y-6"
+            initial={{ opacity: 0, x: -50 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            whileHover={{ scale: 1.1, zIndex: 50 }}
-          />
-        ))}
-      </div>
+          >
+            <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-gray-800">
+              Risk Analysis for Your Farm
+            </h2>
+            <p className="text-gray-600 text-base sm:text-lg lg:text-xl">
+              Identify potential risks on your farm and get actionable insights
+              to improve productivity and reduce losses. Tailored solutions for
+              your farm type.
+            </p>
 
-      {/* Desktop View */}
-      <div className="hidden lg:block relative h-[28rem]">
-        {[img1, img2, img3].map((img, i) => (
-          <motion.img
-            key={i}
-            src={img}
-            alt={`Risk ${i + 1}`}
-            className={`absolute w-60 h-52 rounded-xl shadow-lg object-cover 
+            <motion.button
+              style={{ cursor: "pointer" }}
+              onClick={handleRiskClick}
+              className="w-full sm:w-48 lg:w-56 bg-blue-600 text-white py-3 rounded-xl shadow-md hover:bg-blue-700 transition transform hover:scale-105"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              {riskDone ? "Check Your Result" : "Do Risk Analysis"}
+            </motion.button>
+          </motion.div>
+
+          {/* Right side - Image collage */}
+          <div className="flex-1 relative w-full">
+            {/* Mobile/Tablet View */}
+            <div className="flex justify-center gap-2 relative lg:hidden">
+              {[img1, img2, img3].map((img, i) => (
+                <motion.img
+                  key={i}
+                  src={img}
+                  alt={`Risk ${i + 1}`}
+                  className="w-28 h-28 sm:w-36 sm:h-36 rounded-xl shadow-lg object-cover"
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: i * 0.2 }}
+                  viewport={{ once: true }}
+                  whileHover={{ scale: 1.1, zIndex: 50 }}
+                />
+              ))}
+            </div>
+
+            {/* Desktop View */}
+            <div className="hidden lg:block relative h-[28rem]">
+              {[img1, img2, img3].map((img, i) => (
+                <motion.img
+                  key={i}
+                  src={img}
+                  alt={`Risk ${i + 1}`}
+                  className={`absolute w-60 h-52 rounded-xl shadow-lg object-cover 
                        ${i === 0 ? "top-0 left-15 rotate-[-6deg]" : ""}
                        ${i === 1 ? "top-36 left-50 rotate-[6deg]" : ""}
                        ${i === 2 ? "top-72 left-25 rotate-[-3deg]" : ""}`}
-            initial={{ opacity: 0, x: 80 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            whileHover={{ scale: 1.1, zIndex: 50 }}
-          />
-        ))}
-      </div>
-    </div>
-  </div>
-</section>
+                  initial={{ opacity: 0, x: 80 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6 }}
+                  viewport={{ once: true }}
+                  whileHover={{ scale: 1.1, zIndex: 50 }}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );

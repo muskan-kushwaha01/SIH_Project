@@ -1,4 +1,4 @@
-"""from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
@@ -6,6 +6,7 @@ import numpy as np
 import os
 from pymongo import MongoClient
 from datetime import datetime
+from .auth import router as auth_router, get_current_user
 
 # ------------------------
 # Load ML Model
@@ -26,13 +27,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth_router)
+
 # ------------------------
 # MongoDB Setup
 # ------------------------
-MONGO_URI = "mongodb://localhost:27017"  
+MONGO_URI = "mongodb://localhost:27017"
 client = MongoClient(MONGO_URI)
-db = client["pig_farm_db"]  # database
-collection = db["risk_analysis_records"]  # collection (like table)
+db = client["pig_farm_db"]
+risk_collection = db["risk_analysis_records"]
 
 # ------------------------
 # Input Schema
@@ -60,8 +63,19 @@ def root():
     return {"message": "✅ Pig Farm Risk Analysis API is running"}
 
 
+@app.get("/risk/status")
+def check_risk_status(current_user: dict = Depends(get_current_user)):
+    """Check if user already has a saved risk result"""
+    result = risk_collection.find_one({"user_phone": current_user["phone"]})
+    if result:
+        return {"hasResult": True, "farmType": current_user.get("farmType")}
+    return {"hasResult": False, "farmType": current_user.get("farmType")}
+
+
 @app.post("/predict")
-def predict_risk(data: FarmInput):
+def predict_risk(data: FarmInput, current_user: dict = Depends(get_current_user)):
+    """Run risk prediction and save results for logged-in user"""
+
     # Convert input to features
     features = np.array([[ 
         data.Farm_Size_Acres_Norm,
@@ -101,87 +115,28 @@ def predict_risk(data: FarmInput):
         "recommendation": recommendations[risk_level]
     }
 
-    # ------------------------
-    # Save Input + Result in MongoDB
-    # ------------------------
-    record = data.dict()
-    record.update({
-        "prediction": result,
-        "timestamp": datetime.utcnow()
-    })
-    collection.insert_one(record)
+    # Save Input + Result in MongoDB (overwrite if exists)
+    risk_collection.update_one(
+        {"user_phone": current_user["phone"]},
+        {
+            "$set": {
+                "user_phone": current_user["phone"],
+                "farmType": current_user.get("farmType"),
+                "input": data.dict(),
+                "prediction": result,
+                "timestamp": datetime.utcnow()
+            }
+        },
+        upsert=True
+    )
 
-    return result"""
+    return result
 
-from fastapi import FastAPI
-from pydantic import BaseModel
-from typing import List, Optional
-import joblib
-import pandas as pd
-from pymongo import MongoClient
-import os
 
-app = FastAPI()
-
-# MongoDB connection
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-client = MongoClient(MONGO_URI)
-db = client["poultry_db"]
-collection = db["farms"]
-
-# Load trained GBM model
-model = joblib.load("poultry_gbm_model.pkl")
-
-class Batch(BaseModel):
-    birdType: str
-    chickenType: Optional[str] = None
-    count: int
-    age: int
-    ageUnit: str
-    diseaseAffected: str
-    vaccinations: List[str]
-
-class FarmData(BaseModel):
-    farmDetails: dict
-    batches: List[Batch]
-
-@app.post("/predict-risk")
-def predict_risk(data: FarmData):
-    # --- Save to MongoDB ---
-    collection.insert_one(data.dict())
-
-    # --- Prepare data for prediction ---
-    row = {}
-    fd = data.farmDetails
-    row['farmSize'] = fd.get('farmSize')
-    row['totalBirds'] = fd.get('totalBirds')
-    row['nearbyFarms'] = 1 if fd.get('nearbyFarms')=='yes' else 0
-    row['waterBodies'] = 1 if fd.get('waterBodies')=='yes' else 0
-    row['properFencing'] = 1 if fd.get('properFencing')=='yes' else 0
-    row['cleanDirtyZones'] = 1 if fd.get('cleanDirtyZones')=='yes' else 0
-    row['visitorsPerDay'] = fd.get('visitorsPerDay')
-    row['newFlocksWithoutQuarantine'] = 1 if fd.get('newFlocksWithoutQuarantine')=='yes' else 0
-
-    batch_count = len(data.batches)
-    if batch_count > 0:
-        total_count = sum([b.count for b in data.batches])
-        disease_sum = sum([1 if b.diseaseAffected=='yes' else 0 for b in data.batches])
-        row['count'] = total_count
-        row['age'] = sum([b.age for b in data.batches])/batch_count
-        row['diseaseAffected'] = disease_sum
-        row['birdType'] = 1 if data.batches[0].birdType=='Chicken' else 0
-        row['chickenType'] = 1 if data.batches[0].chickenType=='Broilers' else 0
-    else:
-        row['count'] = 0
-        row['age'] = 0
-        row['diseaseAffected'] = 0
-        row['birdType'] = 0
-        row['chickenType'] = 0
-
-    input_df = pd.DataFrame([row])
-    pred = model.predict(input_df)[0]
-
-    risk_mapping = {0: "Low", 1: "Medium", 2: "High"} # Adjust if needed
-    risk_label = risk_mapping[pred]
-
-    return {"risk_level": risk_label}
+@app.get("/risk/result")
+def get_risk_result(current_user: dict = Depends(get_current_user)):
+    """Fetch last saved risk result for logged-in user"""
+    result = risk_collection.find_one({"user_phone": current_user["phone"]}, {"_id": 0})
+    if not result:
+        raise HTTPException(status_code=404, detail="No risk analysis found for this user")
+    return result

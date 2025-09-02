@@ -79,14 +79,14 @@ const PigFarmForm = () => {
       return;
     }
   
-    // ✅ Convert batch age to weeks based on unit
+    // Convert batch age to weeks
     let ageInWeeks = 0;
     if (batches[0].ageUnit === "days") ageInWeeks = parseFloat(batches[0].age) / 7;
     if (batches[0].ageUnit === "months") ageInWeeks = parseFloat(batches[0].age) * 4;
     if (batches[0].ageUnit === "years") ageInWeeks = parseFloat(batches[0].age) * 52;
     if (batches[0].ageUnit === "weeks") ageInWeeks = parseFloat(batches[0].age);
   
-    // ✅ Vaccination coverage (normalized 0–1, not 0–100)
+    // Vaccination coverage (normalized 0–1)
     const vaccCoverage = Number((batches[0].vaccinations.length / 4).toFixed(2));
   
     const dataToSend = {
@@ -107,9 +107,14 @@ const PigFarmForm = () => {
     };
   
     try {
-      const response = await fetch("http://127.0.0.1:8000/predict", {
+      const token = localStorage.getItem("authToken");
+  
+      const response = await fetch("http://127.0.0.1:8000/predict/", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(dataToSend),
       });
   
@@ -123,12 +128,27 @@ const PigFarmForm = () => {
       const result = await response.json();
       console.log("✅ Prediction Result:", result);
   
-      // ✅ Save result to localStorage
-      localStorage.setItem("riskResult", JSON.stringify(result));
-      localStorage.setItem("riskSubmitted", "true");
+      // 🔥 NEW: Mark as completed in localStorage for immediate UI update
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        localStorage.setItem(`riskSubmitted_${userId}`, "true");
+        console.log(`✅ Marked risk as completed for user: ${userId}`);
+      }
   
-      // ✅ Navigate AFTER saving (go to result page, not just section)
-      navigate("/#risk-analysis");
+      // Force update all components
+      window.dispatchEvent(new Event("storage"));
+  
+      setTimeout(() => {
+        alert("Risk analysis completed successfully!");
+        navigate("/");
+        
+        setTimeout(() => {
+          const section = document.getElementById("risk-analysis");
+          if (section) {
+            section.scrollIntoView({ behavior: "smooth" });
+          }
+        }, 100);
+      }, 200);
   
     } catch (error) {
       console.error("❌ Fetch Error:", error);
@@ -136,8 +156,6 @@ const PigFarmForm = () => {
     }
   };
   
-  
-
   const canProceedToStep2 = () => {
     const required = ['farmSize', 'totalPigs', 'nearbyFarms', 'properFencing', 'cleanDirtyZones', 'visitorsPerDay', 'newPigsWithoutQuarantine', 'separateSpaces'];
     return required.every(field => farmDetails[field]);

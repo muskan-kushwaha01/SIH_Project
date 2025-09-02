@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import axios from "axios"; 
 import logo from "../assets/images/logo2.jpg"; 
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const SignUp = () => {
+  const navigate = useNavigate();
   const [language, setLanguage] = useState("en");
   const [formData, setFormData] = useState({
     name: "",
@@ -64,7 +66,7 @@ const SignUp = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     // Validation
     let newErrors = {};
     if (!formData.name) newErrors.name = t.errors.name;
@@ -78,19 +80,42 @@ const SignUp = () => {
       }
     }
     if (!formData.password) newErrors.password = t.errors.password;
+    if (!formData.farmType) {
+      newErrors.farmType = "Please select a farm type";
+    }
     setErrors(newErrors);
-
+  
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        const response = await axios.post("http://localhost:8000/signup", formData);
+        const response = await axios.post("http://127.0.0.1:8000/auth/signup", formData); 
         console.log("Backend response:", response.data);
-        toast.success("User signed in successfully!");
-        localStorage.setItem("farmType", formData.farmType);
-        setFormData({ name: "", phone: "", email: "", password: "", farmType: "" });
+        
+        // 🔥 Store all data properly
+        if (response.data.token) {
+          localStorage.setItem("authToken", response.data.token);
+        }
+        if (response.data.farmType) {
+          localStorage.setItem("farmType", response.data.farmType);
+        }
+        
+        // Use phone as userId
+        localStorage.setItem("userId", formData.phone);
+  
+        // 🔥 FORCE immediate update
+        window.dispatchEvent(new Event("storage"));
+        
+        // Small delay for state propagation
+        setTimeout(() => {
+          toast.success("Signed up successfully!");
+          navigate("/");
+          setFormData({ name: "", phone: "", email: "", password: "", farmType: "" });
+        }, 100);
+  
       } catch (error) {
         console.error("API Error:", error.response ? error.response.data : error.message);
-        toast.error(error.response?.data?.message || "Something went wrong!");      } finally {
+        toast.error(error.response?.data?.detail || "Something went wrong!");
+      } finally {
         setLoading(false);
       }
     }

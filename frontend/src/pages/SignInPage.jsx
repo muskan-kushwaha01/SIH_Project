@@ -5,6 +5,7 @@ import Loader from '../components/Loader';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
 
+
 const translations = {
   en: {
     signIn: 'Sign In',
@@ -57,26 +58,48 @@ const SignIn = ({ setIsLoggedIn }) => {
     e.preventDefault();
     const newErrors = validate();
     setErrors(newErrors);
-
+  
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        // Call backend API for sign in
-        const response = await axios.post("http://localhost:8000/signin", formData);
+        const response = await axios.post("http://127.0.0.1:8000/auth/signin", formData); 
         console.log("Backend response:", response.data);
-        toast.success("User signed in successfully!");
-        localStorage.setItem("farmType", response.data.farmType);
-        setIsLoggedIn(true);
-        navigate("/");
-        setFormData({ phone: '', password: '' });
+      
+        // 🔥 Store all data properly
+        if (response.data.token) {
+          localStorage.setItem("authToken", response.data.token);
+        }
+        if (response.data.farmType) {
+          localStorage.setItem("farmType", response.data.farmType);
+        }
+        if (response.data.name) {
+          localStorage.setItem("userName", response.data.name);
+        }
+        
+        // Use phone as userId for consistency
+        localStorage.setItem("userId", formData.phone);
+  
+        // 🔥 FORCE immediate update of all components
+        window.dispatchEvent(new Event("storage"));
+        
+        // Small delay to ensure state updates propagate
+        setTimeout(() => {
+          toast.success(response.data.message || "User signed in successfully!");
+          setIsLoggedIn?.(true);
+          navigate("/");
+          setFormData({ phone: '', password: '' });
+        }, 100);
+  
       } catch (error) {
         console.error("API Error:", error.response ? error.response.data : error.message);
-        toast.error(error.response?.data?.message || "Something went wrong!");
+        toast.error(error.response?.data?.detail || "Something went wrong!");
       } finally {
         setLoading(false);
       }
     }
   };
+  
+
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-200 px-4 sm:px-6 lg:px-8 font-sans">
