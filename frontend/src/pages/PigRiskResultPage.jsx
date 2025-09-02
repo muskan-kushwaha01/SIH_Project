@@ -84,6 +84,7 @@ const PigRiskResultPage = () => {
         <div className="text-center">
           <p className="text-lg text-gray-600">No results found</p>
           <button
+          style={{ cursor: "pointer" }}
             onClick={() => navigate("/")}
             className="mt-4 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
           >

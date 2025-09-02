@@ -728,6 +728,7 @@ const handleSubmit = async () => {
     {/* Navigation */}
     <div className="flex flex-col sm:flex-row justify-between mt-8 gap-4">
       <button
+      style={{ cursor: "pointer" }}
         onClick={() => setCurrentStep(1)}
         className="flex items-center justify-center px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
       >
@@ -735,6 +736,7 @@ const handleSubmit = async () => {
         Back
       </button>
       <button
+      style={{ cursor: "pointer" }}
         onClick={handleSubmit}
         className="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md font-medium"
       >

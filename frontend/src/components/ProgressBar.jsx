@@ -1,15 +1,12 @@
 import React from 'react';
 
 const ProgressBar = ({ value, max }) => {
-  const percentage = (value / max) * 100;
+  const percentage = Math.min((value / max) * 100, 100); // prevent overflow
 
   return (
-    <div className="w-full bg-gray-300 rounded-md h-5 my-2">
-      <div
-        className="bg-green-500 h-5 rounded-md text-white text-sm text-center leading-5"
-        style={{ width: `${percentage}%` }}
-      >
-        {`${Math.round(percentage)}%`}
+    <div className="progress-bar-container">
+      <div className="progress-bar" style={{ width: `${percentage}%` }}>
+        <span className="progress-text">{`${Math.round(percentage)}%`}</span>
       </div>
     </div>
   );

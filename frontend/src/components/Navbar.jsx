@@ -138,6 +138,7 @@ const handleTrainingClick = () => {
       {/* Desktop Links */}
       <div className="hidden md:flex items-center space-x-6">
         <button
+        style={{ cursor: "pointer" }}
           onClick={() => handleScrollToSection("risk-analysis")}
           className="relative group px-2 py-1"
         >
@@ -189,6 +190,7 @@ const handleTrainingClick = () => {
         {/* ✅ Show Sign In if not logged in */}
         {!isLoggedIn ? (
           <button
+          style={{ cursor: "pointer" }}
             onClick={() => navigate("/signin")}
             className="ml-4 px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg 
                      relative overflow-hidden transition-all duration-300
@@ -199,6 +201,7 @@ const handleTrainingClick = () => {
           </button>
         ) : (
           <button
+          style={{ cursor: "pointer" }}
             onClick={handleLogout}
             className="ml-4 px-4 py-2 border-2 border-red-600 text-red-600 rounded-lg 
                      relative overflow-hidden transition-all duration-300
@@ -214,6 +217,7 @@ const handleTrainingClick = () => {
       <div className="flex items-center space-x-4 md:hidden">
         {!isLoggedIn ? (
           <button
+          style={{ cursor: "pointer" }}
             onClick={() => navigate("/signin")}
             className="ml-4 px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg 
                      relative overflow-hidden transition-all duration-300
@@ -228,6 +232,7 @@ const handleTrainingClick = () => {
           </button>
         ) : (
           <button
+          style={{ cursor: "pointer" }}
             onClick={handleLogout}
             className="ml-4 px-4 py-2 border-2 border-red-600 text-red-600 rounded-lg 
                      relative overflow-hidden transition-all duration-300
@@ -244,6 +249,7 @@ const handleTrainingClick = () => {
 
         {/* Hamburger */}
         <button
+        style={{ cursor: "pointer" }}
           className="text-2xl focus:outline-none"
           onClick={() => setIsOpen(!isOpen)}
         >

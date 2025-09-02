@@ -425,6 +425,7 @@ const PigFarmForm = () => {
 
               <div className="flex justify-end mt-6 sm:mt-8">
                 <button
+                style={{ cursor: "pointer" }}
                   onClick={() => setCurrentStep(2)}
                   disabled={!canProceedToStep2()}
                   className={`flex items-center px-4 sm:px-6 py-2 rounded-md font-medium text-sm sm:text-base ${
@@ -552,6 +553,7 @@ const PigFarmForm = () => {
                 ))}
 
                 <button
+                style={{ cursor: "pointer" }}
                   onClick={addBatch}
                   className="flex items-center px-4 py-2 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-blue-400 hover:text-blue-600 transition-colors w-full justify-center text-sm sm:text-base"
                 >
@@ -569,6 +571,7 @@ const PigFarmForm = () => {
                   Back
                 </button>
                 <button
+                style={{ cursor: "pointer" }}
                   onClick={handleSubmit}
                   className="px-4 sm:px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md font-medium text-sm sm:text-base"
                 >
