@@ -356,7 +356,7 @@ const Training = () => {
         <span className="text-green-400">Bio</span>
         <span className="text-blue-400">Raksha</span>
       </h1>
-      <p className="text-xs sm:text-sm text-gray-400">Training</p>
+      <p className="text-xs sm:text-sm text-gray-400">Interactive Training</p>
     </div>
   </div>
 </div>
@@ -369,7 +369,7 @@ const Training = () => {
           </h2>
           <nav className="space-y-2">
             {[
-              { key: "scenarios", label: "Success Stories", icon: "📖" },
+              { key: "scenarios", label: "Real-life Stories", icon: "📖" },
               { key: "articles", label: "Research Articles", icon: "📄" },
               { key: "videos", label: "Educational Videos", icon: "🎥" }
             ].map((tab) => (

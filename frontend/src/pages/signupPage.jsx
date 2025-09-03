@@ -79,7 +79,14 @@ const SignUp = () => {
           : "कृपया एक मान्य ईमेल दर्ज करें";
       }
     }
-    if (!formData.password) newErrors.password = t.errors.password;
+    if (!formData.password) {
+      newErrors.password = t.errors.password;
+    } else if (formData.password.length < 8) {
+      newErrors.password =
+        language === "en"
+          ? "Password must be at least 8 characters long."
+          : "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए।";
+    }
     if (!formData.farmType) {
       newErrors.farmType = "Please select a farm type";
     }

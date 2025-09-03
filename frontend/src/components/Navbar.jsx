@@ -163,7 +163,7 @@ const handleTrainingClick = () => {
   className="relative group px-2 py-1"
 >
   <span className="transition-colors duration-300 group-hover:text-blue-600">
-    Training
+    Interactive Training
   </span>
   <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
 </button>
@@ -175,7 +175,7 @@ const handleTrainingClick = () => {
           className="relative group px-2 py-1"
         >
           <span className="transition-colors duration-300 group-hover:text-blue-600">
-            Guidelines
+            Schemes
           </span>
           <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
         </button>
@@ -270,7 +270,7 @@ const handleTrainingClick = () => {
 </button>
 
 <button onClick={handleTrainingClick} className="hover:text-blue-500">
-  Training
+  Interactive Training
 </button>
 
           {/* ✅ Guidelines with authentication check for mobile */}
@@ -278,7 +278,7 @@ const handleTrainingClick = () => {
             onClick={handleGuidelinesClick}
             className="hover:text-blue-500"
           >
-            Guidelines
+            Schemes
           </button>
           <Link to="/contact" className="hover:text-blue-500">
             Contact

@@ -45,24 +45,19 @@ poultry_risk_collection = db["poultry_risk_records"]
 # Input Schemas
 # ------------------------
 class PigFarmInput(BaseModel):
-    Farm_Size_Acres: float
-    Total_Pigs: float
+    Farm_Size_Acres_Norm: float
+    Total_Pigs_Norm: float
     Nearby_Farm_50m: int
     Proper_Fencing: int
     Clean_Dirty_Zones: int
-    Avg_Visitors_Day: float
+    Avg_Visitors_Day_Norm: float
     Introduce_Without_Quarantine: int
     Separate_Spaces: int
-    Batch_Age_Weeks: float
+    Batch_Age_Weeks_Norm: float
     Previously_Infected: int
     Vacc_Coverage_Rate: float
     Pig_Density_Norm: float
-    # Normalized
-    Farm_Size_Acres_Norm: float
-    Total_Pigs_Norm: float
-    Avg_Visitors_Day_Norm: float
-    Batch_Age_Weeks_Norm: float
-    Pig_Density_Norm: float
+
 
 class PoultryFarmInput(BaseModel):
     Farm_Size_Acres: float

@@ -188,13 +188,14 @@ const handleRiskClick = () => {
         <Navbar />
 
         <div className="flex flex-col justify-center items-center text-center px-4 py-20 md:py-32 mt-[120px]">
-          <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white drop-shadow-lg mb-4 pb-5 opacity-0 animate-fadeIn">
+        <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white drop-shadow-lg mb-4 pb-5 opacity-0 animate-fadeIn">
             Empowering Farmers with Technology
           </h1>
 
-          <p className="text-base sm:text-lg md:text-xl text-white max-w-2xl mb-8 pb-4 opacity-0 animate-slideUp animation-delay-300">
-            A smart platform to simplify farming, health, and productivity.
-          </p>
+
+  <p className="text-lg sm:text-xl md:text-2xl text-white max-w-2xl mb-8 pb-4 opacity-0 animate-slideUp animation-delay-300 bg-black/40 px-4 py-2 rounded-lg">
+  A Smart Platform to help farmers improve biosecurity, productivity, and profitability.
+  </p>
 
           {!isLoggedIn && (
             <div
