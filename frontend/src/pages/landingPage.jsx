@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import Navbar from "../components/Navbar";
-import bgImage from "../assets/images/bg-img1.jpg";
+import bgImage from "../assets/images/bg1.jpg";
 import { useNavigate, useLocation } from "react-router-dom";
 import Footer from "../components/Footer";
 import img1 from "../assets/images/hen.jpg";

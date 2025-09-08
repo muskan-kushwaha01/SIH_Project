@@ -221,14 +221,14 @@ const PigFarmForm = () => {
               <div className="space-y-4 sm:space-y-6">
               <div>
   <label className="block text-sm font-medium text-gray-700 mb-2">
-    Size of farm (in acres):
+    Size of farm (in sq.ft.):
   </label>
   <input
     type="number"
     value={farmDetails.farmSize}
     onChange={(e) => {
       const value = parseFloat(e.target.value);
-      if (value > 0 && value <= 1.5) {
+      if (value > 0) {
         handleFarmDetailChange('farmSize', value);
       } else if (e.target.value === '') {
         handleFarmDetailChange('farmSize', ''); // allow clearing input

@@ -94,7 +94,7 @@ const FarmBirdForm = () => {
 const handleSubmit = async () => {
   // --- Farm-level validations ---
   if (Number(farmDetails.farmSize) < 1) {
-    alert("Farm size must be at least 1 acre.");
+    alert("Farm size must be at least 1 sq. ft.");
     return;
   }
   if (Number(farmDetails.totalBirds) < 1) {
@@ -263,7 +263,7 @@ const handleSubmit = async () => {
               {/* Size of farm */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Size of farm (in acres):
+                  Size of farm (in sq.ft.):
                 </label>
                 <input
                   type="number"
