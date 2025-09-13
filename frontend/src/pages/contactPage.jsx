@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import logo from "../assets/images/logo2.jpg";
+import { toast } from "react-toastify";
+
+import robotImage from "../assets/images/robot.png";
+import BioBuddyChatbot from "../components/Chatbot"; 
 
 const ContactPage = () => {
   const [language, setLanguage] = useState("en"); // en = English, hi = Hindi
@@ -81,7 +85,7 @@ const ContactPage = () => {
     e.preventDefault();
     if (validate()) {
       console.log("Form submitted:", formData);
-      alert(
+      toast.success(
         language === "en"
           ? "Thank you! Your issue has been submitted."
           : "धन्यवाद! आपकी समस्या दर्ज की गई है।"
@@ -236,6 +240,9 @@ const ContactPage = () => {
           </button>
         </form>
       </div>
+            <BioBuddyChatbot 
+            robotImage={robotImage} // Uncomment when you have the robot image
+          />
     </div>
   );
 };

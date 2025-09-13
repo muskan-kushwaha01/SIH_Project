@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 
 import robotImage from "../assets/images/robot.png";
 import BioBuddyChatbot from "../components/Chatbot"; 
-import Policies from "./poultryPolicypage"; // Poultry policies
-import PigPolicies from "./policyPage"; // Pig policies
+import Vaccination from "./pigVaccination";
+import PoultryVaccinationDashboard from "./poultryVaccination";
 
-const DynamicGuidelines = () => {
+const DynamicVaccination = () => {
   const [farmType, setFarmType] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -67,7 +67,7 @@ const DynamicGuidelines = () => {
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-blue-500 border-dashed rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading guidelines...</p>
+          <p className="text-gray-600">Loading Vaccination...</p>
         </div>
       </div>
     );
@@ -80,7 +80,7 @@ const DynamicGuidelines = () => {
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
           <div className="text-center">
             <h2 className="text-xl font-semibold text-gray-700 mb-4">Farm Type Not Found</h2>
-            <p className="text-gray-600 mb-6">Please sign in again to access guidelines.</p>
+            <p className="text-gray-600 mb-6">Please sign in again to access Vaccination.</p>
             <button
               onClick={() => navigate("/signin")}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
@@ -96,9 +96,9 @@ const DynamicGuidelines = () => {
     const normalizedType = farmType.toLowerCase().replace(/\s+/g, '');
     
     if (normalizedType.includes("pig")) {
-      return <PigPolicies />;
+      return <Vaccination />;
     } else if (normalizedType.includes("poultry")) {
-      return <Policies />;
+      return <PoultryVaccinationDashboard />;
     } else {
       return (
         <div className="min-h-screen flex items-center justify-center bg-gray-100">
@@ -112,22 +112,15 @@ const DynamicGuidelines = () => {
               Go Home
             </button>
           </div>
+          <BioBuddyChatbot 
+        robotImage={robotImage} // Uncomment when you have the robot image
+      />
         </div>
       );
     }
   };
 
-  return (
-    <div className="relative">
-      {/* Main content */}
-      {renderGuidelines()}
-      
-      {/* Floating Chatbot - only show when not loading and farm type exists */}
-      {!loading && farmType && (
-        <BioBuddyChatbot robotImage={robotImage} />
-      )}
-    </div>
-  );
+  return renderGuidelines();
 };
 
-export default DynamicGuidelines;
+export default DynamicVaccination;

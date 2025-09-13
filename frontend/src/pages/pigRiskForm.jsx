@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 
 
 const PigFarmForm = () => {
@@ -75,7 +77,7 @@ const PigFarmForm = () => {
 
   const handleSubmit = async () => {
     if (batches.length === 0) {
-      alert("Please add at least one batch");
+      toast.error("Please add at least one batch");
       return;
     }
   
@@ -121,7 +123,7 @@ const PigFarmForm = () => {
       if (!response.ok) {
         const err = await response.json();
         console.error("API Error:", err);
-        alert("Failed to submit form. Check console for details.");
+        toast.error("Failed to submit form. Check console for details.");
         return;
       }
   
@@ -139,7 +141,7 @@ const PigFarmForm = () => {
       window.dispatchEvent(new Event("storage"));
   
       setTimeout(() => {
-        alert("Risk analysis completed successfully!");
+        toast.success("Risk analysis completed successfully!");
         navigate("/");
         
         setTimeout(() => {
@@ -152,7 +154,7 @@ const PigFarmForm = () => {
   
     } catch (error) {
       console.error("❌ Fetch Error:", error);
-      alert("Failed to submit form. Check console for details.");
+      toast.error("Failed to submit form. Check console for details.");
     }
   };
   
@@ -236,9 +238,8 @@ const PigFarmForm = () => {
     }}
     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
     placeholder="Enter farm size"
-    min="0.01"
-    max="1.5"
-    step="0.01"
+    min="1"
+    step="1"
   />
 </div>
 

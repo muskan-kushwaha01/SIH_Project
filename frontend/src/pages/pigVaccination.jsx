@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { Trash2, Plus, Calendar, Activity, Shield, TrendingUp, AlertTriangle, CheckCircle } from "lucide-react";
 import Navbar from "../components/Navbar";
 
+import robotImage from "../assets/images/robot.png";
+import BioBuddyChatbot from "../components/Chatbot"; 
+
 const NewBatchModal = ({ onClose, onAddBatch }) => {
   const [batchData, setBatchData] = useState({
     totalPigs: 0,
@@ -591,6 +594,9 @@ const Vaccination = () => {
           </div>
         </div>
       </div>
+      <BioBuddyChatbot 
+        robotImage={robotImage} 
+      />
     </div>
   
   );

@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+
 
 const FarmBirdForm = () => {
   const navigate = useNavigate();
@@ -94,31 +96,31 @@ const FarmBirdForm = () => {
 const handleSubmit = async () => {
   // --- Farm-level validations ---
   if (Number(farmDetails.farmSize) < 1) {
-    alert("Farm size must be at least 1 sq. ft.");
+     toast.error("Farm size must be at least 1 sq. ft.");
     return;
   }
   if (Number(farmDetails.totalBirds) < 1) {
-    alert("Total birds must be at least 1.");
+     toast.error("Total birds must be at least 1.");
     return;
   }
   if (Number(farmDetails.visitorsPerDay) < 1) {
-    alert("Visitors per day must be at least 1.");
+     toast.error("Visitors per day must be at least 1.");
     return;
   }
 
   // --- Batch-level validations ---
   if (batches.length === 0) {
-    alert("Please add at least one batch before submitting.");
+     toast.error("Please add at least one batch before submitting.");
     return;
   }
 
   for (let batch of batches) {
     if (Number(batch.count) < 1) {
-      alert("Batch count must be at least 1.");
+       toast.error("Batch count must be at least 1.");
       return;
     }
     if (Number(batch.age) < 1) {
-      alert("Batch age must be at least 1.");
+       toast.error("Batch age must be at least 1.");
       return;
     }
   }
@@ -177,7 +179,7 @@ const handleSubmit = async () => {
     if (!response.ok) {
       const err = await response.json();
       console.error("API Error:", err);
-      alert("Failed to submit form. Check console for details.");
+       toast.error("Failed to submit form. Check console for details.");
       return;
     }
 
@@ -194,12 +196,12 @@ const handleSubmit = async () => {
     // Force update all components
     window.dispatchEvent(new Event("storage"));
 
-    alert("Poultry risk analysis completed successfully!");
+   toast.success("Poultry risk analysis completed successfully!");
     navigate("/"); // This will now show "Check Your Result" button
 
   } catch (error) {
     console.error("❌ Fetch Error:", error);
-    alert("Failed to submit form. Check console for details.");
+     toast.error("Failed to submit form. Check console for details.");
   }
 };
 

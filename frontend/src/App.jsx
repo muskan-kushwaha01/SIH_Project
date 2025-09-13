@@ -14,7 +14,12 @@ import DynamicGuidelines from './pages/dynamicPolicypage'; // New dynamic compon
 import DynamicRiskAnalysis from './pages/dynamicRiskAnalysisPage'; // New dynamic component
 import "react-toastify/dist/ReactToastify.css";
 import PoultryRiskResultPage from './pages/poultryResultPage';
-import Vaccination from './pages/vaccination';
+import Vaccination from './pages/pigVaccination';
+import AppointmentPage from './pages/appointment';
+import PoultryVaccinationDashboard from './pages/poultryVaccination';
+import DynamicVaccination from './pages/dynamicVaccinePage';
+import PigPolicies from './pages/policyPage';
+import Policies from './pages/poultryPolicypage';
 
 
 function App() {
@@ -34,6 +39,7 @@ function App() {
         <Route path="/poultry-result" element={<PoultryRiskResultPage />} />
         <Route path="/vaccination" element={<Vaccination />} />
         <Route path="/training" element={<Training />} />
+        <Route path="/appointment" element={<AppointmentPage />} />
         
         {/* ✅ NEW: Dynamic routes based on farm type */}
         <Route path="/guidelines" element={<DynamicGuidelines />} />
@@ -42,8 +48,11 @@ function App() {
         {/* ✅ Keep individual routes for direct access/backward compatibility */}
         <Route path="/poultry-risk-form" element={<FarmBirdForm />} />
         <Route path="/pig-risk-form" element={<PigFarmForm />} />
-        <Route path="/pig-guidelines" element={<DynamicGuidelines />} />
-        <Route path="/poultry-guidelines" element={<DynamicGuidelines />} />
+        <Route path="/pig-guidelines" element={<PigPolicies />} />
+        <Route path="/poultry-guidelines" element={<Policies />} />
+        <Route path="/poultry-vaccination" element={<PoultryVaccinationDashboard />} />
+        <Route path="/dynamic-vaccination" element={<DynamicVaccination />} />
+
 
       </Routes>
     </Router>

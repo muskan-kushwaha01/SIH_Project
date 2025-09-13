@@ -120,10 +120,11 @@ def get_me(current_user: dict = Depends(get_current_user)):
     
     farm_type = current_user.get("farmType", "").lower()
     
+   # Uses different collection names
     if "pig" in farm_type:
-        risk_collection = db["risk_analysis_records"]
+        risk_collection = db["risk_analysis_records"]  # ✅ Correct
     elif "poultry" in farm_type:
-        risk_collection = db["poultry_risk_records"]
+        risk_collection = db["poultry_risk_records"]   # ✅ Correct
     else:
         risk_collection = db["risk_analysis_records"]  # default
     

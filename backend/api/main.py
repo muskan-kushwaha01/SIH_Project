@@ -38,7 +38,7 @@ app.include_router(auth_router)
 MONGO_URI = "mongodb://localhost:27017"
 client = MongoClient(MONGO_URI)
 db = client["pig_farm_db"]
-pig_risk_collection = db["risk_analysis_records"]
+pig_risk_collection = db["risk_analysis_records"]    # ✅ Correct
 poultry_risk_collection = db["poultry_risk_records"]
 
 # ------------------------

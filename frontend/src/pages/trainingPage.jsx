@@ -3,6 +3,9 @@ import { Search, Plus, Edit, Trash2, X, Menu, ChevronLeft } from 'lucide-react';
 import logo from "../assets/images/logo2.jpg";
 import { useNavigate } from 'react-router-dom';
 
+import robotImage from "../assets/images/robot.png";
+import BioBuddyChatbot from "../components/Chatbot"; 
+
 
 const Modal = ({ isOpen, onClose, children }) => {
   if (!isOpen) return null;
@@ -583,6 +586,9 @@ const Training = () => {
           </div>
         </div>
       </Modal>
+      <BioBuddyChatbot 
+        robotImage={robotImage} 
+      />
     </div>
   );
 };

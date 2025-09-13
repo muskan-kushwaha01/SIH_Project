@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/images/logo2.jpg";
+import { toast } from "react-toastify";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -34,8 +35,9 @@ const Navbar = () => {
   }, []);
   
   // ✅ Handle Guidelines click with authentication check
-  const handleGuidelinesClick = (e) => {
+  const handleGuidelinesClick = () => {
     if (!isLoggedIn) {
+      toast.error("Please sign in to view Government Schemes");
       navigate("/signin");
     } else {
       navigate("/guidelines");
@@ -46,10 +48,10 @@ const Navbar = () => {
   // ✅ Handler for Vaccination click
 const handleVaccinationClick = () => {
   if (!isLoggedIn) {
-    alert("Please sign in to view vaccination details");
+    toast.error("Please sign in to view vaccination details");
     navigate("/signin");
   } else {
-    navigate("/vaccination");
+    navigate("/dynamic-vaccination");
   }
   setIsOpen(false); // Close mobile menu if open
 };
@@ -57,7 +59,7 @@ const handleVaccinationClick = () => {
 // ✅ Handler for Training click
 const handleTrainingClick = () => {
   if (!isLoggedIn) {
-    alert("Please sign in to view training details");
+    toast.error("Please sign in to view training details");
     navigate("/signin");
   } else {
     navigate("/training");
@@ -65,6 +67,16 @@ const handleTrainingClick = () => {
   setIsOpen(false); // Close mobile menu if open
 };
 
+// ✅ Handler for Appointment click
+const handleAppointmentClick = () => {
+  if (!isLoggedIn) {
+    toast.error("Please sign in to book an appointment");
+    navigate("/signin");
+  } else {
+    navigate("/appointment");
+  }
+  setIsOpen(false); // Close mobile menu if open
+};
   const handleLogout = () => {
     // Only clear auth data - results stay in database
     localStorage.removeItem("authToken");
@@ -154,6 +166,16 @@ const handleTrainingClick = () => {
 >
   <span className="transition-colors duration-300 group-hover:text-blue-600">
     Vaccination
+  </span>
+  <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+</button>
+
+<button
+  onClick={handleAppointmentClick}
+  className="relative group px-2 py-1"
+>
+  <span className="transition-colors duration-300 group-hover:text-blue-600">
+    Appointment
   </span>
   <span className="absolute left-0 bottom-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
 </button>
@@ -268,7 +290,9 @@ const handleTrainingClick = () => {
           <button onClick={handleVaccinationClick} className="hover:text-blue-500">
   Vaccination
 </button>
-
+<button onClick={handleAppointmentClick} className="hover:text-blue-500">
+  Appointment
+</button>
 <button onClick={handleTrainingClick} className="hover:text-blue-500">
   Interactive Training
 </button>

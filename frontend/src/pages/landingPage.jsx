@@ -8,6 +8,9 @@ import Footer from "../components/Footer";
 import img1 from "../assets/images/hen.jpg";
 import img2 from "../assets/images/pig2.jpg";
 import img3 from "../assets/images/hen3.jpg";
+import robotImage from "../assets/images/robot.png";
+import BioBuddyChatbot from "../components/Chatbot"; // Import the chatbot
+// import robotImage from "../assets/images/robot.png"; // Import your robot image
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -130,38 +133,37 @@ const LandingPage = () => {
   }, []);
 
   // Simplified Risk button logic - just navigate to dynamic route
-  // Replace the handleRiskClick function in your LandingPage.jsx with this:
-
-const handleRiskClick = () => {
-  const token = localStorage.getItem("authToken");
-  if (!token) {
-    alert("Please sign in to access Risk Analysis!");
-    navigate("/signin");
-    return;
-  }
-
-  const userId = localStorage.getItem("userId");
-  if (!userId) {
-    alert("User session error. Please sign in again.");
-    navigate("/signin");
-    return;
-  }
-
-  // Check if user has completed risk analysis
-  const hasResult = localStorage.getItem(`riskSubmitted_${userId}`) === "true";
-  
-  if (hasResult || riskDone) { // Use either localStorage or backend flag
-    // Navigate to correct results page based on farm type
-    if (farmType && farmType.toLowerCase().includes('poultry')) {
-      navigate("/poultry-result"); // Navigate to poultry results
-    } else {
-      navigate("/risk-result"); // Navigate to pig results  
+  const handleRiskClick = () => {
+    const token = localStorage.getItem("authToken");
+    if (!token) {
+      alert("Please sign in to access Risk Analysis!");
+      navigate("/signin");
+      return;
     }
-  } else {
-    // Navigate to dynamic risk analysis (will show appropriate form)
-    navigate("/risk-analysis");
-  }
-};
+
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      alert("User session error. Please sign in again.");
+      navigate("/signin");
+      return;
+    }
+
+    // Check if user has completed risk analysis
+    const hasResult = localStorage.getItem(`riskSubmitted_${userId}`) === "true";
+    
+    if (hasResult || riskDone) { // Use either localStorage or backend flag
+      // Navigate to correct results page based on farm type
+      if (farmType && farmType.toLowerCase().includes('poultry')) {
+        navigate("/poultry-result"); // Navigate to poultry results
+      } else {
+        navigate("/risk-result"); // Navigate to pig results  
+      }
+    } else {
+      // Navigate to dynamic risk analysis (will show appropriate form)
+      navigate("/risk-analysis");
+    }
+  };
+
   // Loader
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -191,7 +193,6 @@ const handleRiskClick = () => {
         <h1 className="text-3xl sm:text-4xl md:text-6xl font-bold text-white drop-shadow-lg mb-4 pb-5 opacity-0 animate-fadeIn">
             Empowering Farmers with Technology
           </h1>
-
 
   <p className="text-lg sm:text-xl md:text-2xl text-white max-w-2xl mb-8 pb-4 opacity-0 animate-slideUp animation-delay-300 bg-black/40 px-4 py-2 rounded-lg">
   A Smart Platform to help farmers improve biosecurity, productivity, and profitability.
@@ -288,6 +289,11 @@ const handleRiskClick = () => {
       </section>
 
       <Footer />
+
+      {/* BioBuddy Chatbot - Available throughout the page */}
+      <BioBuddyChatbot 
+        robotImage={robotImage} // Uncomment when you have the robot image
+      />
     </div>
   );
 };
