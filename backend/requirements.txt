@@ -10,8 +10,3 @@ pydantic==2.5.0
 scikit-learn==1.3.2
 joblib==1.3.2
 numpy==1.24.3
-
-to start mongo server in powershell- & "C:\Program Files\MongoDB\Server\8.0\bin\mongod.exe" --dbpath "C:\data\db"
-to run backend - uvicorn backend.api.main:app --reload
-to activate virtual env. - venv\Scripts\activate
-to run frontend - npm run dev
