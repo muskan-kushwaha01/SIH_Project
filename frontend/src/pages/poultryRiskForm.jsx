@@ -2,8 +2,6 @@ import React, { useState } from 'react';
 import { ChevronLeft, ChevronRight, Plus, X } from 'lucide-react';
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import API_BASE from "./config";
-
 
 
 const FarmBirdForm = () => {
@@ -169,7 +167,7 @@ const handleSubmit = async () => {
 
   try {
     const token = localStorage.getItem("authToken");
-    const response = await fetch(`${API_BASE}/predict-risk`, {
+    const response = await fetch("http://127.0.0.1:8000/predict-risk", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

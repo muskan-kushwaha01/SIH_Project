@@ -9,8 +9,8 @@ import img1 from "../assets/images/hen.jpg";
 import img2 from "../assets/images/pig2.jpg";
 import img3 from "../assets/images/hen3.jpg";
 import robotImage from "../assets/images/robot.png";
-import BioBuddyChatbot from "../components/Chatbot"; 
-import API_BASE from "./config";
+import BioBuddyChatbot from "../components/Chatbot"; // Import the chatbot
+// import robotImage from "../assets/images/robot.png"; // Import your robot image
 
 const LandingPage = () => {
   const navigate = useNavigate();
@@ -42,7 +42,7 @@ const LandingPage = () => {
         setIsLoggedIn(true);
 
         try {
-          const response = await fetch(`${API_BASE}/auth/me`, {
+          const response = await fetch("http://127.0.0.1:8000/auth/me", {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           });

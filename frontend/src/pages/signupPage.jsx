@@ -3,8 +3,6 @@ import axios from "axios";
 import logo from "../assets/images/logo2.jpg"; 
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import API_BASE from "./config";
-
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -71,8 +69,15 @@ const SignUp = () => {
   
     // Validation
     let newErrors = {};
-    if (!formData.name) newErrors.name = t.errors.name;
-    if (!formData.phone) newErrors.phone = t.errors.phone;
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    }
+    
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    } else if (!/^[0-9]{10}$/.test(formData.phone)) {
+      newErrors.phone = "Phone number must be exactly 10 digits";
+    }
     if (formData.email) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(formData.email)) {
@@ -97,7 +102,7 @@ const SignUp = () => {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        const response = await axios.post(`${API_BASE}/signup`, formData); 
+        const response = await axios.post("http://127.0.0.1:8000/auth/signup", formData); 
         console.log("Backend response:", response.data);
         
         // 🔥 Store all data properly

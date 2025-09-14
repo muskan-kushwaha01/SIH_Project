@@ -1,19 +1,20 @@
+# backend/api/main.py
 from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import joblib
 import numpy as np
-from pymongo import MongoClient
 from datetime import datetime
-from .auth import router as auth_router, get_current_user
 import os
+from dotenv import load_dotenv
 
-# ------------------------
-# Environment Variables
-# ------------------------
-MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
-DB_NAME = os.environ.get("DB_NAME", "pig_farm_db")
-ALLOWED_ORIGINS = os.environ.get("ALLOWED_ORIGINS", "http://localhost:5173").split(",")
+# Load environment variables from backend folder
+backend_dir = os.path.dirname(os.path.dirname(__file__))  # Go up to backend folder
+env_path = os.path.join(backend_dir, ".env")
+load_dotenv(dotenv_path=env_path)
+
+from .auth import router as auth_router, get_current_user
+from .db import db, test_connection  # Import the test_connection function
 
 # ------------------------
 # Load ML Models
@@ -29,9 +30,19 @@ poultry_model = joblib.load(poultry_model_path)
 # ------------------------
 app = FastAPI(title="Farm Risk Analysis API")
 
+# Add startup event to test database connection
+@app.on_event("startup")
+async def startup_event():
+    print("🚀 Starting Farm Risk Analysis API...")
+    connection_success = await test_connection()
+    if not connection_success:
+        print("⚠️ Warning: Database connection failed, but continuing startup...")
+
+allowed_origins = [os.getenv("ALLOWED_ORIGINS", "http://localhost:5173")]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,  # Dynamic origins from env
+    allow_origins=["*"],  # allow all, or restrict to ["http://localhost:5173"]
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -40,23 +51,13 @@ app.add_middleware(
 app.include_router(auth_router)
 
 # ------------------------
-# MongoDB Setup with Connection Testing
+# MongoDB Collections
 # ------------------------
-try:
-    client = MongoClient(MONGO_URI)
-    # Test the connection
-    client.admin.command('ping')
-    print("✅ Connected to MongoDB successfully!")
-    db = client[DB_NAME]
-except Exception as e:
-    print(f"❌ MongoDB connection failed: {e}")
-    raise
-
-pig_risk_collection = db["risk_analysis_records"]    # ✅ Correct
+pig_risk_collection = db["risk_analysis_records"]
 poultry_risk_collection = db["poultry_risk_records"]
 
 # ------------------------
-# Input Schemas
+# Input Schemas (keep your existing ones)
 # ------------------------
 class PigFarmInput(BaseModel):
     Farm_Size_Acres_Norm: float
@@ -71,7 +72,6 @@ class PigFarmInput(BaseModel):
     Previously_Infected: int
     Vacc_Coverage_Rate: float
     Pig_Density_Norm: float
-
 
 class PoultryFarmInput(BaseModel):
     Farm_Size_Acres: float
@@ -101,43 +101,53 @@ class PoultryFarmInput(BaseModel):
 # ------------------------
 @app.get("/")
 def root():
-    return {"message": "✅ Farm Risk Analysis API is running", "environment": "production" if "mongodb+srv" in MONGO_URI else "development"}
+    return {"message": "✅ Farm Risk Analysis API is running", "status": "healthy"}
 
 @app.get("/health")
-def health_check():
-    """Health check endpoint for Vercel"""
+async def health_check():
+    """Health check endpoint with database status"""
     try:
-        # Test database connection
-        client.admin.command('ping')
-        return {"status": "healthy", "database": "connected", "timestamp": datetime.utcnow()}
+        db_status = await test_connection()
+        return {
+            "status": "healthy",
+            "database": "connected" if db_status else "disconnected",
+            "message": "Farm Risk Analysis API is running"
+        }
     except Exception as e:
-        raise HTTPException(status_code=503, detail=f"Database connection failed: {str(e)}")
+        return {
+            "status": "healthy", 
+            "database": "error",
+            "message": f"API running but database error: {str(e)}"
+        }
 
 @app.get("/risk/status")
-def check_risk_status(current_user: dict = Depends(get_current_user)):
+async def check_risk_status(current_user: dict = Depends(get_current_user)):
     """Check if user already has a saved risk result"""
-    farm_type = current_user.get("farmType", "").lower()
-    
-    if "pig" in farm_type:
-        collection = pig_risk_collection
-    elif "poultry" in farm_type:
-        collection = poultry_risk_collection
-    else:
-        collection = pig_risk_collection  # default
+    try:
+        farm_type = current_user.get("farmType", "").lower()
         
-    result = collection.find_one({"user_phone": current_user["phone"]})
-    if result:
-        return {"hasResult": True, "farmType": current_user.get("farmType")}
-    return {"hasResult": False, "farmType": current_user.get("farmType")}
-
+        if "pig" in farm_type:
+            collection = pig_risk_collection
+        elif "poultry" in farm_type:
+            collection = poultry_risk_collection
+        else:
+            collection = pig_risk_collection  # default
+            
+        result = await collection.find_one({"user_phone": current_user["phone"]})
+        if result:
+            return {"hasResult": True, "farmType": current_user.get("farmType")}
+        return {"hasResult": False, "farmType": current_user.get("farmType")}
+    except Exception as e:
+        print(f"Error in risk status check: {e}")
+        raise HTTPException(status_code=500, detail="Error checking risk status")
 # ------------------------
 # Pig Prediction Endpoint
 # ------------------------
 @app.post("/predict")
-def predict_pig_risk(data: PigFarmInput, current_user: dict = Depends(get_current_user)):
+async def predict_pig_risk(data: PigFarmInput, current_user: dict = Depends(get_current_user)):
     """Run pig risk prediction and save results"""
     
-    features = np.array([[
+    features = np.array([[  # features for model
         data.Farm_Size_Acres_Norm,
         data.Total_Pigs_Norm,
         data.Nearby_Farm_50m,
@@ -167,14 +177,15 @@ def predict_pig_risk(data: PigFarmInput, current_user: dict = Depends(get_curren
     result = {
         "risk_level": risk_level,
         "confidence": {
-            "Low": round(prob[0], 3),
-            "Medium": round(prob[1], 3),
-            "High": round(prob[2], 3)
+            "Low": round(float(prob[0]), 3),
+            "Medium": round(float(prob[1]), 3),
+            "High": round(float(prob[2]), 3)
         },
         "recommendation": recommendations[risk_level]
     }
 
-    pig_risk_collection.update_one(
+    # ✅ Async write to MongoDB
+    await pig_risk_collection.update_one(
         {"user_phone": current_user["phone"]},
         {
             "$set": {
@@ -190,36 +201,37 @@ def predict_pig_risk(data: PigFarmInput, current_user: dict = Depends(get_curren
 
     return result
 
+
 # ------------------------
 # Poultry Prediction Endpoint
 # ------------------------
 @app.post("/predict-risk")
-def predict_poultry_risk(data: PoultryFarmInput, current_user: dict = Depends(get_current_user)):
+async def predict_poultry_risk(data: PoultryFarmInput, current_user: dict = Depends(get_current_user)):
     """Run poultry risk prediction and save results"""
     
-    features = np.array([[
-    data.Farm_Size_Acres,
-    data.Total_Birds,
-    data.Nearby_Farm_50m,
-    data.Water_Bodies_Nearby,
-    data.Proper_Fencing,
-    data.Clean_Dirty_Zones,
-    data.Avg_Visitors_Day,
-    data.Introduce_New_Flocks_Without_Quarantine,
-    data.Batch_Size,
-    data.Batch_Age_Weeks,
-    data.Previously_Infected,
-    data.Mareks,
-    data.Newcastle_ND,
-    data.ND_IB,
-    data.Gumboro_IBD,
-    data.ND_IBD_Booster,
-    data.Fowl_Pox,
-    data.AE,
-    data.Birds_Per_Acre,
-    data.Vacc_Coverage_Rate,
-    data.Missing_Vaccines_Count
-]])
+    features = np.array([[  # features for model
+        data.Farm_Size_Acres,
+        data.Total_Birds,
+        data.Nearby_Farm_50m,
+        data.Water_Bodies_Nearby,
+        data.Proper_Fencing,
+        data.Clean_Dirty_Zones,
+        data.Avg_Visitors_Day,
+        data.Introduce_New_Flocks_Without_Quarantine,
+        data.Batch_Size,
+        data.Batch_Age_Weeks,
+        data.Previously_Infected,
+        data.Mareks,
+        data.Newcastle_ND,
+        data.ND_IB,
+        data.Gumboro_IBD,
+        data.ND_IBD_Booster,
+        data.Fowl_Pox,
+        data.AE,
+        data.Birds_Per_Acre,
+        data.Vacc_Coverage_Rate,
+        data.Missing_Vaccines_Count
+    ]])
 
     pred = poultry_model.predict(features)[0]
     prob = poultry_model.predict_proba(features)[0]
@@ -236,14 +248,15 @@ def predict_poultry_risk(data: PoultryFarmInput, current_user: dict = Depends(ge
     result = {
         "risk_level": risk_level,
         "confidence": {
-            "Low": round(prob[0], 3),
-            "Medium": round(prob[1], 3),
-            "High": round(prob[2], 3)
+            "Low": round(float(prob[0]), 3),
+            "Medium": round(float(prob[1]), 3),
+            "High": round(float(prob[2]), 3)
         },
         "recommendation": recommendations[risk_level]
     }
 
-    poultry_risk_collection.update_one(
+    # ✅ Async write to MongoDB
+    await poultry_risk_collection.update_one(
         {"user_phone": current_user["phone"]},
         {
             "$set": {
@@ -259,19 +272,24 @@ def predict_poultry_risk(data: PoultryFarmInput, current_user: dict = Depends(ge
 
     return result
 
+
 # ------------------------
 # Get Results
 # ------------------------
 @app.get("/risk/result")
-def get_pig_risk_result(current_user: dict = Depends(get_current_user)):
-    result = pig_risk_collection.find_one({"user_phone": current_user["phone"]}, {"_id": 0})
+async def get_pig_risk_result(current_user: dict = Depends(get_current_user)):
+    result = await pig_risk_collection.find_one(
+        {"user_phone": current_user["phone"]}, {"_id": 0}
+    )
     if not result:
         raise HTTPException(status_code=404, detail="No pig risk analysis found for this user")
     return result
 
 @app.get("/risk/poultry-result")
-def get_poultry_risk_result(current_user: dict = Depends(get_current_user)):
-    result = poultry_risk_collection.find_one({"user_phone": current_user["phone"]}, {"_id": 0})
+async def get_poultry_risk_result(current_user: dict = Depends(get_current_user)):
+    result = await poultry_risk_collection.find_one(
+        {"user_phone": current_user["phone"]}, {"_id": 0}
+    )
     if not result:
         raise HTTPException(status_code=404, detail="No poultry risk analysis found for this user")
     return result

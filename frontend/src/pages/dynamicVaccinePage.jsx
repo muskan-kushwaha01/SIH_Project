@@ -6,8 +6,7 @@ import robotImage from "../assets/images/robot.png";
 import BioBuddyChatbot from "../components/Chatbot"; 
 import Vaccination from "./pigVaccination";
 import PoultryVaccinationDashboard from "./poultryVaccination";
-import API_BASE from "./config";
- 
+
 const DynamicVaccination = () => {
   const [farmType, setFarmType] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,7 +28,7 @@ const DynamicVaccination = () => {
       if (!userFarmType) {
         // If not in localStorage, fetch from backend
         try {
-          const response = await fetch(`${API_BASE}/auth/me`, {
+          const response = await fetch("http://127.0.0.1:8000/auth/me", {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           });

@@ -1,32 +1,22 @@
 # backend/api/auth.py
 from fastapi import APIRouter, HTTPException, Header, Depends
 from pydantic import BaseModel, field_validator
-from pymongo import MongoClient
 from datetime import datetime, timedelta
 from passlib.hash import bcrypt
 import jwt
 import os
+from dotenv import load_dotenv
+from .db import db  # ✅ central DB
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-# Environment variables
-SECRET_KEY = os.environ.get("JWT_SECRET", "change_this_secret_in_prod")
-MONGO_URI = os.environ.get("MONGO_URI", "mongodb://localhost:27017")
-DB_NAME = os.environ.get("DB_NAME", "pig_farm_db")
+load_dotenv()
 
-# MongoDB connection with error handling
-try:
-    client = MongoClient(MONGO_URI)
-    # Test the connection
-    client.admin.command('ping')
-    print("✅ Connected to MongoDB successfully!")
-    db = client[DB_NAME]
-except Exception as e:
-    print(f"❌ MongoDB connection failed: {e}")
-    raise
+SECRET_KEY = os.getenv("JWT_SECRET", "change_this_secret_in_prod")
 
 users_collection = db["users"]
 results_collection = db["risk_results"]
+
 
 class UserSignup(BaseModel):
     name: str
@@ -42,21 +32,18 @@ class UserSignup(BaseModel):
             raise ValueError("Invalid phone number")
         return v
 
+
 class UserLogin(BaseModel):
     phone: str
     password: str
 
 
 def create_token(phone: str):
-    payload = {
-        "phone": phone,
-        "exp": datetime.utcnow() + timedelta(days=7)
-    }
+    payload = {"phone": phone, "exp": datetime.utcnow() + timedelta(days=7)}
     return jwt.encode(payload, SECRET_KEY, algorithm="HS256")
 
 
-def get_current_user(authorization: str | None = Header(None)):
-    """Decode JWT and return user from DB"""
+async def get_current_user(authorization: str | None = Header(None)):
     if not authorization:
         raise HTTPException(status_code=401, detail="Missing Authorization header")
 
@@ -75,39 +62,14 @@ def get_current_user(authorization: str | None = Header(None)):
     except Exception:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-    user = users_collection.find_one({"phone": phone}, {"password": 0})
+    user = await users_collection.find_one({"phone": phone}, {"password": 0})
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
     return user
-
-
-@router.post("/signup")
-def signup(user: UserSignup):
-    if users_collection.find_one({"phone": user.phone}):
-        raise HTTPException(status_code=400, detail="User with this phone number already exists")
-
-    hashed_password = bcrypt.hash(user.password)
-
-    user_data = {
-        "name": user.name,
-        "phone": user.phone,
-        "email": user.email,
-        "password": hashed_password,
-        "farmType": user.farmType,
-        "created_at": datetime.utcnow()
-    }
-
-    users_collection.insert_one(user_data)
-
-    token = create_token(user.phone)
-
-    return {"message": "User signed up successfully", "token": token, "farmType": user.farmType}
-
-
 @router.post("/signin")
-def signin(user: UserLogin):
-    existing_user = users_collection.find_one({"phone": user.phone})
+async def signin(user: UserLogin):
+    existing_user = await users_collection.find_one({"phone": user.phone})
     if not existing_user:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -124,22 +86,61 @@ def signin(user: UserLogin):
     }
 
 
+@router.post("/signup")
+async def signup(user: UserSignup):
+    try:
+        # Check if user already exists
+        existing_user = await users_collection.find_one({"phone": user.phone})
+        if existing_user:
+            raise HTTPException(status_code=400, detail="User with this phone number already exists")
+
+        # Hash password
+        hashed_password = bcrypt.hash(user.password)
+
+        # Create user document
+        user_data = {
+            "name": user.name.strip(),
+            "phone": user.phone,
+            "email": user.email.strip() if user.email else None,
+            "password": hashed_password,
+            "farmType": user.farmType,
+            "created_at": datetime.utcnow()
+        }
+
+        # Insert user
+        result = await users_collection.insert_one(user_data)
+        
+        if not result.inserted_id:
+            raise HTTPException(status_code=500, detail="Failed to create user")
+
+        # Generate token
+        token = create_token(user.phone)
+
+        return {
+            "message": "User signed up successfully", 
+            "token": token, 
+            "farmType": user.farmType
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Signup error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during signup")
+
 @router.get("/me")
-def get_me(current_user: dict = Depends(get_current_user)):
-    """Return current logged-in user profile with risk status"""
-    
+async def get_me(current_user: dict = Depends(get_current_user)):
     farm_type = current_user.get("farmType", "").lower()
-    
-    # Uses different collection names
+
     if "pig" in farm_type:
-        risk_collection = db["risk_analysis_records"]  # ✅ Correct
+        risk_collection = db["risk_analysis_records"]
     elif "poultry" in farm_type:
-        risk_collection = db["poultry_risk_records"]   # ✅ Correct
+        risk_collection = db["poultry_risk_records"]
     else:
-        risk_collection = db["risk_analysis_records"]  # default
-    
-    has_result = risk_collection.find_one({"user_phone": current_user.get("phone")}) is not None
-    
+        risk_collection = db["risk_analysis_records"]
+
+    has_result = await risk_collection.find_one({"user_phone": current_user.get("phone")}) is not None
+
     return {
         "name": current_user.get("name"),
         "phone": current_user.get("phone"),
