@@ -4,7 +4,7 @@ import logo from '../assets/images/logo2.jpg';
 import Loader from '../components/Loader';
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-
+import API_BASE from '../config';
 
 const translations = {
   en: {
@@ -62,7 +62,7 @@ const SignIn = ({ setIsLoggedIn }) => {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        const response = await axios.post("http://127.0.0.1:8000/auth/signin", formData); 
+        const response = await axios.post(`${API_BASE}/auth/signin`, formData); 
         console.log("Backend response:", response.data);
       
         // 🔥 Store all data properly

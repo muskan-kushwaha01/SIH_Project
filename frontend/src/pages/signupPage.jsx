@@ -3,6 +3,7 @@ import axios from "axios";
 import logo from "../assets/images/logo2.jpg"; 
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
+import API_BASE from "../config";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -102,7 +103,7 @@ const SignUp = () => {
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
       try {
-        const response = await axios.post("http://127.0.0.1:8000/auth/signup", formData); 
+        const response = await axios.post(`${API_BASE}/auth/signup`, formData); 
         console.log("Backend response:", response.data);
         
         // 🔥 Store all data properly

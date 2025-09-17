@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import FarmBirdForm from "./poultryRiskForm"; // Poultry risk form
 import PigFarmForm from "./pigRiskForm"; // Pig risk form
+import API_BASE from "../config";
+
 
 const DynamicRiskAnalysis = () => {
   const [farmType, setFarmType] = useState(null);
@@ -33,7 +35,7 @@ const DynamicRiskAnalysis = () => {
       if (!userFarmType) {
         // If not in localStorage, fetch from backend
         try {
-          const response = await fetch("http://127.0.0.1:8000/risk/status", {
+          const response = await fetch(`${API_BASE}/risk/status`, {
   method: "GET",
   headers: { Authorization: `Bearer ${token}` },
 });

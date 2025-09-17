@@ -1,6 +1,7 @@
 // DynamicGuidelines.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API_BASE from '../config';
 
 import robotImage from "../assets/images/robot.png";
 import BioBuddyChatbot from "../components/Chatbot"; 
@@ -28,7 +29,7 @@ const DynamicGuidelines = () => {
       if (!userFarmType) {
         // If not in localStorage, fetch from backend
         try {
-          const response = await fetch("http://127.0.0.1:8000/auth/me", {
+          const response = await fetch(`${API_BASE}/auth/me`, {
             method: "GET",
             headers: { Authorization: `Bearer ${token}` },
           });

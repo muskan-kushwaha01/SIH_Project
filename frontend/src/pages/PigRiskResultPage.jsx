@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE from "../config";
 
 const PigRiskResultPage = () => {
   const [result, setResult] = useState(null);
@@ -81,7 +82,7 @@ const PigRiskResultPage = () => {
     
         // First, check if server is running
         try {
-          const healthCheck = await fetch('http://127.0.0.1:8000/');
+          const healthCheck = await fetch(`${API_BASE}/`);
           if (!healthCheck.ok) {
             throw new Error('Server is not responding correctly');
           }
@@ -89,7 +90,7 @@ const PigRiskResultPage = () => {
           throw new Error('Cannot connect to server. Please make sure the API server is running on port 8000.');
         }
     
-        const response = await fetch('http://127.0.0.1:8000/risk/result', {
+        const response = await fetch(`${API_BASE}/risk/result`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,

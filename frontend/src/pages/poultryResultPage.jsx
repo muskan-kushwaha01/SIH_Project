@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import API_BASE from "../config";
 
 const PoultryRiskResultPage = () => {
   const [result, setResult] = useState(null);
@@ -79,7 +80,7 @@ const PoultryRiskResultPage = () => {
     
         // First, check if server is running
         try {
-          const healthCheck = await fetch('http://127.0.0.1:8000/');
+          const healthCheck = await fetch(`${API_BASE}/`);
           if (!healthCheck.ok) {
             throw new Error('Server is not responding correctly');
           }
@@ -87,7 +88,7 @@ const PoultryRiskResultPage = () => {
           throw new Error('Cannot connect to server. Please make sure the API server is running on port 8000.');
         }
     
-        const response = await fetch('http://127.0.0.1:8000/risk/poultry-result', {
+        const response = await fetch(`${API_BASE}/risk/poultry-result`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${token}`,
